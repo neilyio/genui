@@ -255,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (error) {
       console.error('Error calling API:', error);
-      appendMessage('assistant', `Sorry, there was an error: ${error.message}`);
+      throw error;
     } finally {
       sendButton.disabled = false;     // Re-enable send button
       attachmentButton.disabled = false; // Re-enable attachment button
@@ -320,7 +320,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showImagePreview(currentImage, file.name);
     } catch (error) {
       console.error('Error processing image:', error);
-      alert('Error processing image');
+      throw error;
     }
   });
 
