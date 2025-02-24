@@ -89,10 +89,9 @@ set TRIAGE_JSON_SCHEMA '{
 }'
 
 # The messages for the Triage step
-set TRIAGE_MESSAGES (printf '%s\n' \
-  '{"role": "system", "content": '\"$TRIAGING_SYSTEM_PROMPT\"'}, \
-  '{"role": "user", "content": '\"$USER_PROMPT\"'} \
-')
+set TRIAGE_MESSAGES (printf '[%s,%s]' \
+  '{"role": "system", "content": "'$TRIAGING_SYSTEM_PROMPT'"}' \
+  '{"role": "user", "content": "'$USER_PROMPT'"}')
 
 # ------------
 # 2) TRIAGE CALL
