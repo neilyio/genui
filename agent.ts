@@ -195,11 +195,7 @@ async function callOpenAI(
     messages,
     response_format: {
       type: "json_schema",
-      json_schema: {
-        name: "somename",
-        strict: true,
-        schema
-      },
+      json_schema: schema, // Corrected to use the provided schema directly
     },
     temperature,
   };
