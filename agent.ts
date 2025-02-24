@@ -149,7 +149,8 @@ const SUBAGENT_SCHEMA = {
         type: "string",
       },
     },
-    additionalProperties: true,
+    required: ["ui_changes", "content"],
+    additionalProperties: false,
   },
 };
 
