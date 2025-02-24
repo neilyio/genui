@@ -162,10 +162,9 @@ function call_agent
       }
     }'
 
-    set AGENT_MESSAGES (printf '%s\n' \
-      '{"role": "system", "content": '\"$SYSTEM_PROMPT\"'}, \
-      '{"role": "user", "content": '\"$agent_prompt\"'} \
-    ')
+    set AGENT_MESSAGES (printf '[%s,%s]' \
+      '{"role": "system", "content": "'$SYSTEM_PROMPT'"}' \
+      '{"role": "user", "content": "'$agent_prompt'"}')
 
     echo "===== CALLING AGENT: $agent_type ====="
     set AGENT_RESPONSE (curl https://api.openai.com/v1/chat/completions \
