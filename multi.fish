@@ -166,24 +166,21 @@ function call_agent
       '{"role": "user", "content": "'$agent_prompt'"}')
 
     echo "===== CALLING AGENT: $agent_type ====="
-    set AGENT_RESPONSE (curl https://api.openai.com/v1/chat/completions \
-      -s \
-      -H "Content-Type: application/json" \
-      -H "Authorization: Bearer $OPENAI_API_KEY" \
-      -d @- << EOF
-{
-  "model": "$MODEL",
+    set AGENT_RESPONSE (echo '{
+  "model": "'$MODEL'",
   "messages": [
-    $AGENT_MESSAGES
+    '$AGENT_MESSAGES'
   ],
   "response_format": {
     "type": "json_schema",
-    "json_schema": $AGENT_SCHEMA
+    "json_schema": '$AGENT_SCHEMA'
   },
   "temperature": 0
-}
-EOF
-    )
+}' | curl https://api.openai.com/v1/chat/completions \
+      -s \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer $OPENAI_API_KEY" \
+      -d @-)
 
     echo "----- RAW $agent_type RESPONSE -----"
     echo $AGENT_RESPONSE | jq .
