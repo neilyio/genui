@@ -63,5 +63,15 @@ test("fetch color palette reference", async () => {
     colors.add(`rgb(${r},${g},${b})`);
   }
 
-  expect(colors).toMatchInlineSnapshot();
+  expect(colors).toMatchInlineSnapshot(`
+    Set {
+      "rgb(67,70,75)",
+      "rgb(255,43,56)",
+      "rgb(72,255,94)",
+      "rgb(135,151,255)",
+      "rgb(228,203,96)",
+      "rgb(255,115,153)",
+      "rgb(121,255,undefined)",
+    }
+  `);
 });
