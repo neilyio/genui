@@ -49,21 +49,17 @@ test("fetch color palette reference", async () => {
   const response = await Bun.fetch(url);
   const buffer = await response.arrayBuffer();
 
-  const resizedImageBuffer = await sharp(Buffer.from(buffer))
-    .resize(100)
+  const smallImageBuffer = await sharp(Buffer.from(buffer))
+    .resize(5, 1) // Resize to 5 pixels wide and 1 pixel tall
     .toColorspace('srgb')
+    .raw()
     .toBuffer();
 
-  const { data, info } = await sharp(resizedImageBuffer)
-    .quantize({ colors: 5 })
-    .raw()
-    .toBuffer({ resolveWithObject: true });
-
   const colors = new Set();
-  for (let i = 0; i < data.length; i += info.channels) {
-    const r = data[i];
-    const g = data[i + 1];
-    const b = data[i + 2];
+  for (let i = 0; i < smallImageBuffer.length; i += 3) {
+    const r = smallImageBuffer[i];
+    const g = smallImageBuffer[i + 1];
+    const b = smallImageBuffer[i + 2];
     colors.add(`rgb(${r},${g},${b})`);
   }
 
