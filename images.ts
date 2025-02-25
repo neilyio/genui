@@ -23,7 +23,7 @@ async function scrapeGoogleImages(searchTerm: string, numResults = 10): Promise<
 
     while ((match = imgRegex.exec(data)) !== null) {
       const src = match[1];
-      if (src && !src.includes('gstatic')) { // Filter out Google’s own assets
+      if (src) {
         imageUrls.push(src);
       }
     }
