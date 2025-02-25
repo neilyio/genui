@@ -16,20 +16,17 @@ async function scrapeGoogleImages(searchTerm: string, numResults = 10): Promise<
     });
     const data = await response.text();
 
-    // Parse the HTML using DOMParser
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(data, 'text/html');
-
-    // Extract image URLs from the search results
+    // Extract image URLs using regular expressions
     const imageUrls: string[] = [];
-    const imgElements = doc.querySelectorAll('img');
+    const imgRegex = /<img[^>]+src="([^">]+)"/g;
+    let match;
 
-    imgElements.forEach((element) => {
-      const src = element.getAttribute('src');
+    while ((match = imgRegex.exec(data)) !== null) {
+      const src = match[1];
       if (src && !src.includes('gstatic')) { // Filter out Google’s own assets
         imageUrls.push(src);
       }
-    });
+    }
 
     // Return the top N results
     return imageUrls.slice(0, numResults);
