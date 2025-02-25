@@ -28,6 +28,15 @@ async function scrapeGoogleImages(searchTerm: string, numResults = 10): Promise<
       }
     }
 
+    // ADD THIS LOOP:
+    const iurlRegex = /<img[^>]+data-iurl="([^">]+)"/g;
+    while ((match = iurlRegex.exec(data)) !== null) {
+      const src = match[1];
+      if (src) {
+        imageUrls.push(src);
+      }
+    }
+
     // Return the top N results
     return imageUrls.slice(0, numResults);
   } catch (error) {
