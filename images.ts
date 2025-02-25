@@ -1,5 +1,5 @@
 /**
- * Scrape Google Images thumbnails using Axios & Cheerio.
+ * Scrape Google Images thumbnails using Fetch & Cheerio.
  * @param searchTerm The term to search for
  * @param numResults Number of thumbnails to fetch
  */
@@ -9,11 +9,12 @@ async function scrapeGoogleImages(searchTerm: string, numResults = 10): Promise<
     const url = `https://www.google.com/search?q=${query}&tbm=isch`;
 
     // Fetch HTML content
-    const { data } = await axios.get(url, {
+    const response = await fetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36',
       },
     });
+    const data = await response.text();
 
     // Load the HTML into cheerio
     const $ = cheerio.load(data);
