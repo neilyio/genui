@@ -40,7 +40,14 @@ async function scrapeGoogleImages(searchTerm: string, numResults = 10): Promise<
       }
     }
 
-    // Return the top N results
+    // Parse "ou":"(someUrl)" from the page to get real image URLs
+    const fullSizeRegex = /"ou":"(.*?)"/g;
+    while ((match = fullSizeRegex.exec(data)) !== null) {
+      const realUrl = decodeURIComponent(match[1]);
+      if (realUrl) {
+        imageUrls.push(realUrl);
+      }
+    }
     return imageUrls.slice(0, numResults);
   } catch (error) {
     console.error('Error fetching Google Images:', error);
