@@ -63,7 +63,7 @@ test("fetch color palette reference", async () => {
     pixels.push([r, g, b]);
   }
 
-  const { clusters } = kmeans(pixels, 5); // Cluster into 5 colors
+  const { clusters } = kmeans(pixels, 5, {}); // Cluster into 5 colors with default options
 
   const colors = clusters.map(cluster => {
     const [r, g, b] = cluster.centroid;
