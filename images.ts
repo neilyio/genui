@@ -42,5 +42,17 @@ async function scrapeGoogleImages(searchTerm: string, numResults = 10): Promise<
   const results = await scrapeGoogleImages(searchTerm, 10);
 
   console.log(`Top ${results.length} thumbnail URLs for "${searchTerm}":`);
-  results.forEach((url, index) => console.log(`${index + 1}: ${url}`));
+  for (let i = 0; i < results.length; i++) {
+    const url = results[i];
+    try {
+      const resp = await fetch(url);
+      const arrayBuffer = await resp.arrayBuffer();
+      const base64 = btoa(
+        new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
+      );
+      console.log(`${i + 1} - size: ${arrayBuffer.byteLength} bytes, base64: ${base64}`);
+    } catch (error) {
+      console.error(`Error fetching image at ${url}:`, error);
+    }
+  }
 })();
