@@ -51,18 +51,21 @@ test("fetch color palette reference", async () => {
 
   const resizedImageBuffer = await sharp(Buffer.from(buffer))
     .resize(100)
-    .raw()
+    .toColorspace('srgb')
     .toBuffer();
 
+  const { data, info } = await sharp(resizedImageBuffer)
+    .quantize({ colors: 5 })
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+
   const colors = new Set();
-  for (let i = 0; i < resizedImageBuffer.length; i += 3) {
-    const r = resizedImageBuffer[i];
-    const g = resizedImageBuffer[i + 1];
-    const b = resizedImageBuffer[i + 2];
+  for (let i = 0; i < data.length; i += info.channels) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
     colors.add(`rgb(${r},${g},${b})`);
   }
 
-  expect(colors).toMatchInlineSnapshot(`
-    
-  `);
+  expect(colors).toMatchInlineSnapshot();
 });
