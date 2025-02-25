@@ -60,7 +60,9 @@ test("fetch color palette reference", async () => {
     const r = smallImageBuffer[i];
     const g = smallImageBuffer[i + 1];
     const b = smallImageBuffer[i + 2];
-    colors.add(`rgb(${r},${g},${b})`);
+    if (r !== undefined && g !== undefined && b !== undefined) {
+      colors.add(`rgb(${r},${g},${b})`);
+    }
   }
 
   expect(colors).toMatchInlineSnapshot(`
@@ -71,7 +73,6 @@ test("fetch color palette reference", async () => {
       "rgb(135,151,255)",
       "rgb(228,203,96)",
       "rgb(255,115,153)",
-      "rgb(121,255,undefined)",
     }
   `);
 });
