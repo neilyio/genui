@@ -276,4 +276,36 @@ test("stitch color palettes from 10 URLs", async () => {
 
   const swatches = finalPaletteResult.value;
   expect(swatches.length).toBeGreaterThan(0);
+
+  // Create an image from the swatches
+  const swatchImages = swatches.map(({ rgb }) => {
+    return sharp({
+      create: {
+        width: 100,
+        height: 100,
+        channels: 3,
+        background: { r: rgb[0], g: rgb[1], b: rgb[2] },
+      },
+    }).png().toBuffer();
+  });
+
+  const swatchBuffers = await Promise.all(swatchImages);
+
+  const swatchStitched = await sharp({
+    create: {
+      width: 100 * swatchBuffers.length,
+      height: 100,
+      channels: 3,
+      background: { r: 255, g: 255, b: 255 },
+    },
+  })
+    .composite(swatchBuffers.map((buffer, index) => ({
+      input: buffer,
+      left: index * 100,
+      top: 0,
+    })))
+    .png()
+    .toFile('swatch_palette.png');
+
+  console.log('Swatch palette image created:', swatchStitched);
 }, 20000);
