@@ -1,24 +1,28 @@
 import { test, expect } from "bun:test";
 import { scrapeBingImages } from "./images";
-// @ts-ignore
-import snapshots from "./__snapshots__/images.test.ts.snap" with { type: "text" };
+import sharp from 'sharp';
 
-function getSnapshot(test: string) {
-  const exports: { [key: string]: string } = {};
-  eval(snapshots);
-  const data = exports[`${test} 1`];
-  if (data) return eval(data);
-}
+// // @ts-ignore
+// import snapshots from "./__snapshots__/images.test.ts.snap" with { type: "text" };
+
+// function getSnapshot(test: string) {
+//   const exports: { [key: string]: string } = {};
+//   eval(snapshots);
+//   const data = exports[`${test} 1`];
+//   if (data) return eval(data);
+// }
 
 test.skip("searches bing", async () => {
   const n = 2;
   const urls = await scrapeBingImages("giraffes", n);
   expect(urls.length).toBe(n);
-  expect(urls).toMatchSnapshot();
-});
+  expect(urls).toMatchInlineSnapshot(`
+    [
+      "https://images.pexels.com/photos/1619507/pexels-photo-1619507.jpeg?cs=srgb&dl=animal-animal-photography-giraffe-1619507.jpg&fm=jpg",
+      "https://images.pexels.com/photos/730185/pexels-photo-730185.jpeg?cs=srgb&dl=giraffe-730185.jpg&fm=jpg",
+    ]
+  `);
 
-test.skip("fetch snapshot", async () => {
-  const urls = getSnapshot("searches bing");
   const urlStats = [];
   let promises = urls.map(async (url: any, i: number) => {
     const resp = await Bun.fetch(url);
@@ -37,10 +41,8 @@ test.skip("fetch snapshot", async () => {
       "2 - status: 200, size: 240742 bytes",
     ]
   `);
-}, 10000);
+});
 
-
-import sharp from 'sharp';
 
 test("fetch color palette reference", async () => {
   const url = "https://upload.wikimedia.org/wikipedia/commons/0/03/Trending_colors_2017.png";
@@ -51,5 +53,5 @@ test("fetch color palette reference", async () => {
     .resize(100)
     .toBuffer();
 
-  expect(resizedImageBuffer).toMatchSnapshot();
+  expect(Bun.hash(resizedImageBuffer)).toMatchInlineSnapshot(`13241821219030219356n`);
 });
