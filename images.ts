@@ -3,8 +3,6 @@
  * @param searchTerm The term to search for
  * @param numResults Number of image URLs to return
  */
-import { JSDOM } from 'jsdom';
-
 async function scrapeBingImages(searchTerm: string, numResults = 10): Promise<string[]> {
   try {
     const query = encodeURIComponent(searchTerm);
@@ -19,28 +17,13 @@ async function scrapeBingImages(searchTerm: string, numResults = 10): Promise<st
     });
     const html = await response.text();
 
-    // Parse the response HTML
-    const dom = new JSDOM(html);
-    const doc = dom.window.document;
-
-    // Bing uses <a class="iusc" m="json..."> elements for image results
-    const anchors = doc.querySelectorAll('a.iusc');
+    // Use a regular expression to find image URLs in the HTML
     const imageUrls: string[] = [];
-
-    anchors.forEach((anchor) => {
-      const mAttr = anchor.getAttribute('m');
-      if (mAttr) {
-        try {
-          // 'm' is a JSON string containing info about the image, including "murl"
-          const mData = JSON.parse(mAttr);
-          if (mData.murl) {
-            imageUrls.push(mData.murl);
-          }
-        } catch (err) {
-          // If parsing fails, skip
-        }
-      }
-    });
+    const regex = /"murl":"(.*?)"/g;
+    let match;
+    while ((match = regex.exec(html)) !== null) {
+      imageUrls.push(match[1]);
+    }
 
     // Return only the top numResults
     return imageUrls.slice(0, numResults);
