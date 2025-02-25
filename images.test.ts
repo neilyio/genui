@@ -40,6 +40,20 @@ test.skip("fetch snapshot", async () => {
 }, 10000);
 
 
-test("fetch color palette reference", () => {
+import { createCanvas, loadImage } from 'canvas';
+
+test("fetch color palette reference", async () => {
   const url = "https://upload.wikimedia.org/wikipedia/commons/0/03/Trending_colors_2017.png";
-})
+  const response = await Bun.fetch(url);
+  const buffer = await response.arrayBuffer();
+  const image = await loadImage(Buffer.from(buffer));
+
+  const width = 100;
+  const height = (image.height / image.width) * width;
+  const canvas = createCanvas(width, height);
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(image, 0, 0, width, height);
+
+  const resizedImageBuffer = canvas.toBuffer();
+  expect(resizedImageBuffer).toMatchSnapshot();
+});
