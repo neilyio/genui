@@ -19,7 +19,7 @@ async function scrapeBingImages(searchTerm: string, numResults = 10): Promise<st
 
     // Use a regular expression to find image URLs in the HTML
     const imageUrls: string[] = [];
-    const regex = /"murl":"(.*?)"/g;
+    const regex = /"murl":"(https?:\/\/[^"]+)"/g;
     let match;
     while ((match = regex.exec(html)) !== null) {
       imageUrls.push(match[1]);
