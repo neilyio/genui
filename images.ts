@@ -1,5 +1,5 @@
 /**
- * Scrape Google Images thumbnails using Fetch & Cheerio.
+ * Scrape Google Images thumbnails using Fetch and DOMParser.
  * @param searchTerm The term to search for
  * @param numResults Number of thumbnails to fetch
  */
@@ -16,14 +16,16 @@ async function scrapeGoogleImages(searchTerm: string, numResults = 10): Promise<
     });
     const data = await response.text();
 
-    // Load the HTML into cheerio
-    const $ = cheerio.load(data);
+    // Parse the HTML using DOMParser
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(data, 'text/html');
 
     // Extract image URLs from the search results
     const imageUrls: string[] = [];
+    const imgElements = doc.querySelectorAll('img');
 
-    $('img').each((_index, element) => {
-      const src = $(element).attr('src');
+    imgElements.forEach((element) => {
+      const src = element.getAttribute('src');
       if (src && !src.includes('gstatic')) { // Filter out Google’s own assets
         imageUrls.push(src);
       }
