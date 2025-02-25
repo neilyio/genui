@@ -1,56 +1,49 @@
 /**
- * Scrape Google Images thumbnails using Fetch and DOMParser.
+ * Scrape Bing Images using Fetch and DOMParser.
  * @param searchTerm The term to search for
- * @param numResults Number of thumbnails to fetch
+ * @param numResults Number of image URLs to return
  */
-async function scrapeGoogleImages(searchTerm: string, numResults = 10): Promise<string[]> {
+async function scrapeBingImages(searchTerm: string, numResults = 10): Promise<string[]> {
   try {
     const query = encodeURIComponent(searchTerm);
-    const url = `https://www.google.com/search?q=${query}&tbm=isch`;
+    const url = `https://www.bing.com/images/search?q=${query}&FORM=HDRSC2`;
 
-    // Fetch HTML content
+    // Fetch the HTML content
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36',
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36',
       },
     });
-    const data = await response.text();
-    console.log('DEBUG: Full HTML from Google:\n', data);
+    const html = await response.text();
 
-    // Extract image URLs using regular expressions
+    // Parse the response HTML
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+
+    // Bing uses <a class="iusc" m="json..."> elements for image results
+    const anchors = doc.querySelectorAll('a.iusc');
     const imageUrls: string[] = [];
-    const imgRegex = /<img[^>]+(?:data-src|src)="([^">]+)"/g;
-    let match;
 
-    while ((match = imgRegex.exec(data)) !== null) {
-      const src = match[1];
-      console.log('DEBUG: Found src from imgRegex:', src);
-      console.log('DEBUG: Found src from iurlRegex:', src);
-      if (src) {
-        imageUrls.push(src);
+    anchors.forEach((anchor) => {
+      const mAttr = anchor.getAttribute('m');
+      if (mAttr) {
+        try {
+          // 'm' is a JSON string containing info about the image, including "murl"
+          const mData = JSON.parse(mAttr);
+          if (mData.murl) {
+            imageUrls.push(mData.murl);
+          }
+        } catch (err) {
+          // If parsing fails, skip
+        }
       }
-    }
+    });
 
-    // ADD THIS LOOP:
-    const iurlRegex = /<img[^>]+data-iurl="([^">]+)"/g;
-    while ((match = iurlRegex.exec(data)) !== null) {
-      const src = match[1];
-      if (src) {
-        imageUrls.push(src);
-      }
-    }
-
-    // Parse "ou":"(someUrl)" from the page to get real image URLs
-    const fullSizeRegex = /"ou":"(.*?)"/g;
-    while ((match = fullSizeRegex.exec(data)) !== null) {
-      const realUrl = decodeURIComponent(match[1]);
-      if (realUrl) {
-        imageUrls.push(realUrl);
-      }
-    }
+    // Return only the top numResults
     return imageUrls.slice(0, numResults);
   } catch (error) {
-    console.error('Error fetching Google Images:', error);
+    console.error('Error fetching Bing Images:', error);
     return [];
   }
 }
@@ -58,18 +51,19 @@ async function scrapeGoogleImages(searchTerm: string, numResults = 10): Promise<
 // Example usage:
 (async () => {
   const searchTerm = 'cute puppies'; // Change this query as needed
-  const results = await scrapeGoogleImages(searchTerm, 10);
+  const results = await scrapeBingImages(searchTerm, 10);
 
-  console.log(`Top ${results.length} thumbnail URLs for "${searchTerm}":`);
+  console.log(`Top ${results.length} image URLs for "${searchTerm}":`);
   for (let i = 0; i < results.length; i++) {
     const url = results[i];
     try {
       const resp = await fetch(url);
       const arrayBuffer = await resp.arrayBuffer();
-      const base64 = btoa(
-        new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
+
+      // Print the "image state": e.g., HTTP status code and size
+      console.log(
+        `${i + 1} - status: ${resp.status}, size: ${arrayBuffer.byteLength} bytes`
       );
-      console.log(`${i + 1} - size: ${arrayBuffer.byteLength} bytes, base64: ${base64}`);
     } catch (error) {
       console.error(`Error fetching image at ${url}:`, error);
     }
