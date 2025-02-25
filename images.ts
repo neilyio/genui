@@ -3,6 +3,8 @@
  * @param searchTerm The term to search for
  * @param numResults Number of image URLs to return
  */
+import { JSDOM } from 'jsdom';
+
 async function scrapeBingImages(searchTerm: string, numResults = 10): Promise<string[]> {
   try {
     const query = encodeURIComponent(searchTerm);
@@ -18,8 +20,8 @@ async function scrapeBingImages(searchTerm: string, numResults = 10): Promise<st
     const html = await response.text();
 
     // Parse the response HTML
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
+    const dom = new JSDOM(html);
+    const doc = dom.window.document;
 
     // Bing uses <a class="iusc" m="json..."> elements for image results
     const anchors = doc.querySelectorAll('a.iusc');
