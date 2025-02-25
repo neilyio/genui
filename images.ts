@@ -18,7 +18,7 @@ async function scrapeGoogleImages(searchTerm: string, numResults = 10): Promise<
 
     // Extract image URLs using regular expressions
     const imageUrls: string[] = [];
-    const imgRegex = /<img[^>]+src="([^">]+)"/g;
+    const imgRegex = /<img[^>]+(?:data-src|src)="([^">]+)"/g;
     let match;
 
     while ((match = imgRegex.exec(data)) !== null) {
