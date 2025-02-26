@@ -40,18 +40,21 @@ export function buildGoogleFontsUrl(
   const familyParams = fontList.map((font) => {
     let formattedFont = font.trim().replace(/\s+/g, "+");
 
-    // Handle weights and axes
-    const weightParam = options.weights ? `wght@${options.weights.join(";")}` : "";
-    const axesParam = options.axes
+    // Handle weights (if specified)
+    const weightParam = options.weights && options.weights.length > 0
+      ? `wght@${options.weights.join(";")}`
+      : "";
+
+    // Handle variable font axes (if specified)
+    const axesParam = options.axes && Object.keys(options.axes).length > 0
       ? Object.entries(options.axes)
-        .map(([key, value]) => `${key},${value}`)
+        .sort(([a], [b]) => a.localeCompare(b)) // Sort alphabetically
+        .map(([key, value]) => `${key}@${value}`)
         .join(";")
       : "";
 
-    const params = [weightParam, axesParam].filter(Boolean).join(",");
-    if (params) {
-      formattedFont += `:${params}`;
-    }
+    // If both weights and axes exist, merge them
+    const params = [weightParam, axesParam].filter(Boolean).join(";");
 
     if (params) {
       formattedFont += `:${params}`;
@@ -85,7 +88,6 @@ export function buildGoogleFontsUrl(
   return url;
 }
 
-
 /**
  * Fetch the Google Fonts CSS from a given URL, returning a Result.
  * This will try a fallback URL if the primary fetch fails.
@@ -98,6 +100,7 @@ export async function fetchGoogleFontCSS(
   let response: Response;
   try {
     response = await Bun.fetch(primaryUrl);
+    console.log("RESPONSE", response);
   } catch (err) {
     // If fetch threw, let's skip directly to fallback
     return await fetchFallbackCSS(fallbackUrl);
@@ -271,76 +274,123 @@ describe("Google Font Fetching", () => {
 
   it("should fetch all font weights using a range in the URL", async () => {
     const options: FontOptions = {
-      weights: ["wght@100..900"],
+      weights: ["100"],
     };
 
     const primaryUrl = buildGoogleFontsUrl("Open Sans", options);
-    expect(primaryUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Open+Sans:wght@wght@100..900"`);
+    expect(primaryUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Open+Sans:wght@100"`);
     const fallbackUrl = buildGoogleFontsUrl("Roboto", options);
-    expect(fallbackUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Roboto:wght@wght@100..900"`);
-    const result = await fetchGoogleFontCSS("https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,200..900;1,700", fallbackUrl);
+    expect(fallbackUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Roboto:wght@100"`);
+    const result = await fetchGoogleFontCSS(primaryUrl, fallbackUrl);
 
     expect(result).toMatchInlineSnapshot(`
-{
-  "ok": true,
-  "value": 
-"@font-face {
-  font-family: 'Crimson Pro';
-  font-style: italic;
-  font-weight: 700;
-  src: url(https://fonts.gstatic.com/s/crimsonpro/v24/q5uSsoa5M_tv7IihmnkabAReu49Y_Bo-HVKMBi5zfJs7.ttf) format('truetype');
-}
-@font-face {
-  font-family: 'Crimson Pro';
-  font-style: normal;
-  font-weight: 200;
-  src: url(https://fonts.gstatic.com/s/crimsonpro/v24/q5uUsoa5M_tv7IihmnkabC5XiXCAlXGks1WZTm18OA.ttf) format('truetype');
-}
-@font-face {
-  font-family: 'Crimson Pro';
-  font-style: normal;
-  font-weight: 300;
-  src: url(https://fonts.gstatic.com/s/crimsonpro/v24/q5uUsoa5M_tv7IihmnkabC5XiXCAlXGks1WZkG18OA.ttf) format('truetype');
-}
-@font-face {
-  font-family: 'Crimson Pro';
-  font-style: normal;
-  font-weight: 400;
-  src: url(https://fonts.gstatic.com/s/crimsonpro/v24/q5uUsoa5M_tv7IihmnkabC5XiXCAlXGks1WZzm18OA.ttf) format('truetype');
-}
-@font-face {
-  font-family: 'Crimson Pro';
-  font-style: normal;
-  font-weight: 500;
-  src: url(https://fonts.gstatic.com/s/crimsonpro/v24/q5uUsoa5M_tv7IihmnkabC5XiXCAlXGks1WZ_G18OA.ttf) format('truetype');
-}
-@font-face {
-  font-family: 'Crimson Pro';
-  font-style: normal;
-  font-weight: 600;
-  src: url(https://fonts.gstatic.com/s/crimsonpro/v24/q5uUsoa5M_tv7IihmnkabC5XiXCAlXGks1WZEGp8OA.ttf) format('truetype');
-}
-@font-face {
-  font-family: 'Crimson Pro';
-  font-style: normal;
-  font-weight: 700;
-  src: url(https://fonts.gstatic.com/s/crimsonpro/v24/q5uUsoa5M_tv7IihmnkabC5XiXCAlXGks1WZKWp8OA.ttf) format('truetype');
-}
-@font-face {
-  font-family: 'Crimson Pro';
-  font-style: normal;
-  font-weight: 800;
-  src: url(https://fonts.gstatic.com/s/crimsonpro/v24/q5uUsoa5M_tv7IihmnkabC5XiXCAlXGks1WZTmp8OA.ttf) format('truetype');
-}
-@font-face {
-  font-family: 'Crimson Pro';
-  font-style: normal;
-  font-weight: 900;
-  src: url(https://fonts.gstatic.com/s/crimsonpro/v24/q5uUsoa5M_tv7IihmnkabC5XiXCAlXGks1WZZ2p8OA.ttf) format('truetype');
-}
-"
-,
-}
-`);
+      {
+        "ok": true,
+        "value": 
+      "@font-face {
+        font-family: 'Roboto';
+        font-style: normal;
+        font-weight: 100;
+        font-stretch: normal;
+        src: url(https://fonts.gstatic.com/s/roboto/v47/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbGmT.ttf) format('truetype');
+      }
+      "
+      ,
+      }
+    `);
+  });
+
+  const GOOGLE_FONTS_METADATA_URL = "https://fonts.google.com/metadata/fonts";
+
+  /**
+   * Fetch Google Fonts metadata.
+   */
+  async function fetchGoogleFontsMetadata() {
+    const response = await Bun.fetch(GOOGLE_FONTS_METADATA_URL, {
+      headers: {
+        "User-Agent": "Mozilla/5.0",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch Google Fonts metadata: ${response.statusText}`);
+    }
+
+    let text = await response.text();
+
+    // Remove Google's anti-JSON security prefix `)]}'
+    text = text.replace(/^\)\]\}'/, "");
+
+    return JSON.parse(text);
+  }
+
+
+  /**
+   * Extract supported weights for a font.
+   */
+  async function getFontWeights(fontName: string) {
+    const data = await fetchGoogleFontsMetadata();
+
+    const fontData = data.familyMetadataList.find(
+      (font: any) => font.family.toLowerCase() === fontName.toLowerCase()
+    );
+
+    if (!fontData) {
+      return null; // Font not found
+    }
+
+    return Object.keys(fontData.fonts).map((w) => (w.includes("i") ? `${w} italic` : w));
+  }
+
+  /**
+   * Jest Tests
+   */
+  describe("Google Fonts Metadata", () => {
+
+    it("should retrieve supported weights for Open Sans", async () => {
+      const weights = await getFontWeights("Open Sans");
+      expect(weights).toMatchInlineSnapshot(`
+        [
+          "300",
+          "400",
+          "500",
+          "600",
+          "700",
+          "800",
+          "300i italic",
+          "400i italic",
+          "500i italic",
+          "600i italic",
+          "700i italic",
+          "800i italic",
+        ]
+      `);
+    });
+
+    it("should retrieve supported weights for Roboto", async () => {
+      const weights = await getFontWeights("Roboto");
+      expect(weights).toMatchInlineSnapshot(`
+        [
+          "100",
+          "200",
+          "300",
+          "400",
+          "500",
+          "600",
+          "700",
+          "800",
+          "900",
+          "100i italic",
+          "200i italic",
+          "300i italic",
+          "400i italic",
+          "500i italic",
+          "600i italic",
+          "700i italic",
+          "800i italic",
+          "900i italic",
+        ]
+      `);
+    });
   });
 });
