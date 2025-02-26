@@ -216,43 +216,17 @@ test.skip("stitch color palettes from 10 URLs", async () => {
 }, 20000);
 
 test("combine to one and gpt analyze", async () => {
-  // This test is now redundant as the logic has been moved to processChatMessageFlow
-  const n = 4;
-  const searchTerm = "superman color palette";
-  const imageUrls = await scrapeBingImages(searchTerm, n);
-
-  const promises = imageUrls.map((url) =>
-    Bun.fetch(url)
-      .then((r) => r.arrayBuffer())
-      .then((b) => Buffer.from(b))
-      .then((b) => downsample(b, 300))
-  );
-
-  const buffers = await Promise.allSettled(promises)
-    .then((rs) =>
-      rs
-        .filter((r) => r.status === "fulfilled")
-        .map((r) => r.value)
-        .filter((r) => r.ok)
-        .map((r) => r.value)
-    );
-
-  const stitchedResult = await stitchHorizontallyAlpha(buffers);
-  if (!stitchedResult.ok) throw stitchedResult.error;
-
-  const stitchedBuffer = await stitchedResult.value.toBuffer();
-  const base64Image = `data:image/png;base64,${stitchedBuffer.toString("base64")}`;
-
-  const urls: ChatMessageContent[] = [
-    { type: "image_url", image_url: { url: base64Image, detail: "low" } },
+  const contents: ChatMessageContent[] = [
+    { type: "text", text: "superman color palette" }
   ];
 
-  let css = await sendPaletteRequest(urls).then((r) => {
-    if (!r.ok) throw new Error(`${JSON.stringify(r.error)}`);
-    return r.value;
-  });
+  const result = await processChatMessageFlow(contents);
 
-  expect(css).toMatchInlineSnapshot(`
+  if (!result.ok) {
+    throw new Error(`Flow processing failed: ${result.error}`);
+  }
+
+  expect(result.value).toMatchInlineSnapshot(`
     {
       "ui_changes": {
         "assistant_message_background": "#F2F2F2",
