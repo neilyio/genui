@@ -279,37 +279,38 @@ test("combine to one and gpt analyze", async () => {
   const searchTerm = "superman color palette";
   const imageUrls = await scrapeBingImages(searchTerm, n);
 
-  const promises =
-    imageUrls.map((url) => Bun.fetch(url)
-      .then(r => r.arrayBuffer())
-      .then(b => Buffer.from(b)).then(b => downsample(b, 300)));
+  const promises = imageUrls.map((url) =>
+    Bun.fetch(url)
+      .then((r) => r.arrayBuffer())
+      .then((b) => Buffer.from(b))
+      .then((b) => downsample(b, 300))
+  );
 
   const buffers = await Promise.allSettled(promises)
-    .then(rs =>
-      rs.filter(r => r.status === "fulfilled")
-        .map(r => r.value)
-        .filter(r => r.ok)
-        .map(r => r.value)
+    .then((rs) =>
+      rs
+        .filter((r) => r.status === "fulfilled")
+        .map((r) => r.value)
+        .filter((r) => r.ok)
+        .map((r) => r.value)
     );
 
-  // const stitched = await stitchHorizontallyAlpha(buffers).then(r => {
-  //   if (!r.ok) throw new Error(`${r.error}`);
-  //   return r.value;
-  // });
-  // 
-  const urls: ChatMessageContent[] = buffers.map(buffer => `data:image/jpeg;base64,${buffer.toString('base64')}`).map(url => ({
-    type: "image_url", image_url: { url, detail: "low" }
-  }));
+  const stitchedResult = await stitchHorizontallyAlpha(buffers);
+  if (!stitchedResult.ok) throw new Error(`${stitchedResult.error}`);
 
+  const stitchedBuffer = await stitchedResult.value.toBuffer();
+  const base64Image = `data:image/png;base64,${stitchedBuffer.toString("base64")}`;
 
-  let css = await sendPaletteRequest(urls).then(r => {
+  const urls: ChatMessageContent[] = [
+    { type: "image_url", image_url: { url: base64Image, detail: "low" } },
+  ];
+
+  let css = await sendPaletteRequest(urls).then((r) => {
     if (!r.ok) throw new Error(`${JSON.stringify(r.error)}`);
     return r.value;
   });
 
   Bun.write("./testcolors.json", JSON.stringify(css.ui_changes));
-
-  // await stitched.toFile("stitched.png");
 }, 30000);
 
 
