@@ -48,6 +48,30 @@ async function fetchGoogleFontsMetadata() {
 }
 
 /**
+ * Executes the full flow for fetching font CSS and variables based on a theme prompt.
+ * 
+ * @param prompt - The theme prompt for which fonts are desired.
+ * @returns {Promise<{ css: string, vars: { [key: string]: Json } }>} - A promise resolving to the CSS and font variables.
+ */
+export async function executeFontFlow(prompt: string): Promise<{ css: string, vars: { [key: string]: Json } }> {
+  const nameResult = await sendFontNameRequest(prompt);
+  if (!nameResult.ok) throw nameResult.error;
+
+  const primaryUrl = await buildGoogleFontsUrl(nameResult.value.primary_font_name?.toString?.() ?? "");
+  const fallbackUrl = await buildGoogleFontsUrl(nameResult.value.fallback_font_name?.toString?.() ?? "");
+
+  const cssResult = await fetchGoogleFontCSS(primaryUrl, fallbackUrl);
+  if (!cssResult.ok) throw cssResult.error;
+
+  const fontString = parseGoogleFontCSS(cssResult.value);
+
+  const varsResult = await sendFontVarsRequest(fontString);
+  if (!varsResult.ok) throw varsResult.error;
+
+  return { css: cssResult.value, vars: varsResult.value };
+}
+
+/**
  * Extract supported weights for a font.
  */
 export async function getFontWeights(fontName: string) {

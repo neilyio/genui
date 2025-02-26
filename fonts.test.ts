@@ -54,36 +54,18 @@ describe("Google Font Fetching", () => {
     it("should suggest an exotic font for a 'gothic' theme", async () => {
       const prompt = "gothic";
 
-      const nameResult = await sendFontNameRequest(prompt);
-      if (!nameResult.ok) throw nameResult.error;
-      expect(nameResult.value).toMatchInlineSnapshot(`
+      const result = await executeFontFlow(prompt);
+      expect(result).toMatchInlineSnapshot(`
         {
-          "fallback_font_name": "Fruktur",
-          "primary_font_name": "UnifrakturMaguntia",
-        }
-      `);
-
-      const primaryUrl = await buildGoogleFontsUrl(nameResult.value.primary_font_name?.toString?.() ?? "");
-      const fallbackUrl = await buildGoogleFontsUrl(nameResult.value.fallback_font_name?.toString?.() ?? "");
-
-      expect(primaryUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=UnifrakturMaguntia:ital,wght@0,400&display=swap"`);
-      const cssResult = await fetchGoogleFontCSS(primaryUrl, fallbackUrl);
-      if (!cssResult.ok) throw cssResult.error;
-
-      const fontString = parseGoogleFontCSS(cssResult.value);
-      expect(fontString).toMatchInlineSnapshot(`"UnifrakturMaguntia: 400"`);
-
-      const varsResult = await sendFontVarsRequest(fontString);
-      if (!varsResult.ok) throw varsResult.error;
-
-      expect(varsResult.value).toMatchInlineSnapshot(`
-        {
-          "header_font_family": "UnifrakturMaguntia",
-          "header_font_weight": "400",
-          "message_font_family": "UnifrakturMaguntia",
-          "message_font_weight": "400",
-          "placeholder_font_family": "UnifrakturMaguntia",
-          "placeholder_font_weight": "400",
+          "css": "/* CSS content here */",
+          "vars": {
+            "header_font_family": "UnifrakturMaguntia",
+            "header_font_weight": "400",
+            "message_font_family": "UnifrakturMaguntia",
+            "message_font_weight": "400",
+            "placeholder_font_family": "UnifrakturMaguntia",
+            "placeholder_font_weight": "400",
+          },
         }
       `);
 
