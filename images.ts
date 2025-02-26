@@ -291,15 +291,7 @@ export async function processChatMessageFlow(contents: ChatMessageContent[]): Pr
   const css = await sendPaletteRequest(urls);
   if (!css.ok) return err(JSON.stringify(css.error));
 
-  const base64ImageSizes = base64Images.map(img => {
-    const base64Data = img.split(",")[1];
-    return Buffer.from(base64Data, 'base64').length;
-  });
-
   return ok({
-    ui_changes: css.value,
-    imageUrls,
-    base64Images: base64ImageSizes,
     ui_changes: css.value,
     imageUrls,
     base64Images: base64Images.map(img => Buffer.from(img.split(",")[1], 'base64').length),

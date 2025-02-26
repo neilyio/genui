@@ -294,29 +294,25 @@ test("color processing flow", async () => {
   }
 
   expect(result.value.imageUrls).toMatchInlineSnapshot(`
-    Array [
-      "https://images.pexels.com/photos/1619507/pexels-photo-1619507.jpeg?cs=srgb&dl=animal-animal-photography-giraffe-1619507.jpg&fm=jpg",
-      "https://images.pexels.com/photos/730185/pexels-photo-730185.jpg?cs=srgb&dl=giraffe-730185.jpg&fm=jpg",
+    [
+      "https://www.color-hex.com/palettes/1034747.png",
+      "http://www.color-hex.com/palettes/4991.png",
+      "https://i.pinimg.com/originals/24/68/ef/2468ef062a80f42f764806e891442319.jpg",
+      "https://www.color-hex.com/palettes/61708.png",
     ]
   `);
 
-  expect(result.value.base64Images).toMatchInlineSnapshot(`
-    Array [
-      123456, // Example size in bytes
-      789012, // Example size in bytes
-      // Add more sizes as needed
-    ]
-  `);
+  expect(result.value.base64Images).toMatchInlineSnapshot(`[]`);
 
-  expect(result.value.stitchedImage).toMatchInlineSnapshot(`"data:image/png;base64,..."`);
+  expect(result.value.stitchedImage).toMatchInlineSnapshot();
 
   expect(result.value.ui_changes).toMatchInlineSnapshot(`
     {
       "ui_changes": {
         "assistant_message_background": "#F2F2F2",
-        "assistant_message_border_color": "#CCCCCC",
+        "assistant_message_border_color": "#BFBFBF",
         "assistant_message_text_color": "#1A1A1A",
-        "attachment_button_bg": "#C72C41",
+        "attachment_button_bg": "#1A4D9B",
         "attachment_button_color": "#FFFFFF",
         "background_color": "#F2F2F2",
         "border_color": "#CCCCCC",
@@ -328,12 +324,12 @@ test("color processing flow", async () => {
         "input_background": "#E6E6E6",
         "page_bg": "#FFFFFF",
         "primary_color": "#1A4D9B",
-        "secondary_color": "#C72C41",
-        "send_button_bg": "#1A4D9B",
+        "secondary_color": "#C72B2B",
+        "send_button_bg": "#C72B2B",
         "send_button_color": "#FFFFFF",
         "text_color": "#1A1A1A",
-        "user_message_background": "#C72C41",
-        "user_message_border_color": "#A52A2A",
+        "user_message_background": "#C72B2B",
+        "user_message_border_color": "#A62828",
         "user_message_text_color": "#FFFFFF",
       },
     }
