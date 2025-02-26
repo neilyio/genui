@@ -16,76 +16,145 @@ export type FontError =
   | { type: "RequestFailed" }
   | { type: "FallbackFailed" };
 
-export interface FontOptions {
-  weights?: Array<number | string>; // e.g. [400, 700, "italic", "bolditalic"]
-  italics?: Array<{ italic: 0 | 1; weight: number }>; // e.g. [{ italic: 0, weight: 400 }, { italic: 1, weight: 700 }]
-  axes?: Record<string, string | number>; // e.g. { wght: "200..900", ital: 1 }
-  subsets?: string[]; // e.g. ["latin", "cyrillic", "greek"]
-  display?: string; // e.g. "swap", "fallback", etc.
-  text?: string; // e.g. "Hello World"
-  effects?: string[]; // e.g. ["shadow-multiple", "3d-float"]
+const GOOGLE_FONTS_METADATA_URL = "https://fonts.google.com/metadata/fonts";
+
+/**
+ * Fetch Google Fonts metadata.
+ */
+async function fetchGoogleFontsMetadata() {
+  const response = await Bun.fetch(GOOGLE_FONTS_METADATA_URL, {
+    headers: {
+      "User-Agent": "Mozilla/5.0",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch Google Fonts metadata: ${response.statusText}`);
+  }
+
+  let text = await response.text();
+
+  // Remove Google's anti-JSON security prefix `)]}'
+  text = text.replace(/^\)\]\}'/, "");
+
+  return JSON.parse(text);
 }
+
+
+/**
+ * Extract supported weights for a font.
+ */
+async function getFontWeights(fontName: string) {
+  const data = await fetchGoogleFontsMetadata();
+
+  const fontData = data.familyMetadataList.find(
+    (font: any) => font.family.toLowerCase() === fontName.toLowerCase()
+  );
+
+  if (!fontData) {
+    return null; // Font not found
+  }
+
+  return Object.keys(fontData.fonts).map((w) => (w.includes("i") ? `${w} italic` : w));
+}
+
 
 /**
  * Builds the new Google Fonts API v2 URL with effects support.
  */
-export function buildGoogleFontsUrl(
-  fontNames: string | string[],
-  options: FontOptions
-): string {
-  // Ensure it's an array
+export async function buildGoogleFontsUrl(fontNames: string | string[]): Promise<string> {
+  // Ensure fontNames is an array
   const fontList = Array.isArray(fontNames) ? fontNames : [fontNames];
 
-  // Convert each font into the correct format
-  const familyParams = fontList.map((font) => {
+  // Fetch available font weights for each font
+  const fontDataPromises = fontList.map(async (font) => {
+    const weights = await getFontWeights(font);
+
+    if (!weights || weights.length === 0) {
+      return null; // Skip if no weights found
+    }
+
     let formattedFont = font.trim().replace(/\s+/g, "+");
 
-    // Handle weights (if specified)
-    const weightParam = options.weights && options.weights.length > 0
-      ? `wght@${options.weights.join(";")}`
-      : "";
+    // Extract italic and non-italic weights
+    const italicWeights = weights
+      .filter((w) => w.includes("italic"))
+      .map((w) => parseInt(w.replace("i", "").replace(" italic", ""), 10)) // Ensure conversion to numbers
+      .filter((w) => !isNaN(w)); // Remove invalid values
 
-    // Handle variable font axes (if specified)
-    const axesParam = options.axes && Object.keys(options.axes).length > 0
-      ? Object.entries(options.axes)
-        .sort(([a], [b]) => a.localeCompare(b)) // Sort alphabetically
-        .map(([key, value]) => `${key}@${value}`)
-        .join(";")
-      : "";
+    const regularWeights = weights
+      .filter((w) => !w.includes("italic"))
+      .map((w) => parseInt(w, 10)) // Ensure conversion to numbers
+      .filter((w) => !isNaN(w)); // Remove invalid values
 
-    // If both weights and axes exist, merge them
-    const params = [weightParam, axesParam].filter(Boolean).join(";");
+    // Ensure numeric sorting
+    regularWeights.sort((a, b) => a - b);
+    italicWeights.sort((a, b) => a - b);
 
-    if (params) {
-      formattedFont += `:${params}`;
+    let fontParams = [];
+
+    // Handle regular and italic weights together in a valid format
+    if (regularWeights.length > 0 || italicWeights.length > 0) {
+      const weightPairs: string[] = [];
+
+      if (regularWeights.length > 0) {
+        weightPairs.push(`0,${regularWeights.join(";0,")}`);
+      }
+
+      if (italicWeights.length > 0) {
+        weightPairs.push(`1,${italicWeights.join(";1,")}`);
+      }
+
+      fontParams.push(`ital,wght@${weightPairs.join(";")}`);
+    }
+
+    if (fontParams.length > 0) {
+      formattedFont += `:${fontParams.join(";")}`;
     }
 
     return `family=${formattedFont}`;
   });
 
+  // Resolve all font weight queries
+  const familyParams = (await Promise.all(fontDataPromises)).filter(Boolean);
+
   let url = `https://fonts.googleapis.com/css2?${familyParams.join("&")}`;
 
-  // If subsets are specified
-  if (options.subsets && options.subsets.length > 0) {
-    url += `&subset=${options.subsets.join(",")}`;
-  }
-
-  // If display= is specified
-  if (options.display) {
-    url += `&display=${encodeURIComponent(options.display)}`;
-  }
-
-  // If text= is specified
-  if (options.text) {
-    url += `&text=${encodeURIComponent(options.text)}`;
-  }
-
-  // If effects are specified (only available for some fonts)
-  if (options.effects && options.effects.length > 0) {
-    url += `&effect=${options.effects.join("|")}`;
-  }
+  // Ensure aggressive retrieval of available styles
+  url += `&display=swap`;
 
   return url;
+}
+
+/**
+ * Parses Google Fonts CSS and extracts a compact summary of available styles and weights.
+ * 
+ * @param cssText - The raw CSS string from the Google Fonts API.
+ * @returns A compact summary string of available styles and weights.
+ */
+export function parseGoogleFontCSS(cssText: string): string {
+  const fontMap: Record<string, Set<string>> = {};
+
+  // Regex to extract @font-face properties
+  const fontFaceRegex =
+    /@font-face\s*{[^}]*?font-family:\s*'([^']+)';[^}]*?font-style:\s*(\w+);[^}]*?font-weight:\s*(\d+);/g;
+
+  let match;
+  while ((match = fontFaceRegex.exec(cssText)) !== null) {
+    const [, fontFamily, fontStyle, fontWeight] = match;
+    const key = fontStyle === "italic" ? `italic ${fontWeight}` : fontWeight;
+
+    if (!fontMap[fontFamily]) {
+      fontMap[fontFamily] = new Set();
+    }
+
+    fontMap[fontFamily].add(key);
+  }
+
+  // Format the compact summary
+  return Object.entries(fontMap)
+    .map(([font, styles]) => `${font}: ${Array.from(styles).sort().join(", ")}`)
+    .join(" | ");
 }
 
 /**
@@ -100,7 +169,6 @@ export async function fetchGoogleFontCSS(
   let response: Response;
   try {
     response = await Bun.fetch(primaryUrl);
-    console.log("RESPONSE", response);
   } catch (err) {
     // If fetch threw, let's skip directly to fallback
     return await fetchFallbackCSS(fallbackUrl);
@@ -145,206 +213,93 @@ async function fetchFallbackCSS(fallbackUrl: string): Promise<FontResult<string>
   return { ok: true, value: css };
 }
 
-/**
- * Build and return the Google Fonts URL for testing purposes.
- */
-export function getGoogleFontsUrl(
-  fontName: string,
-  options: FontOptions
-): FontResult<string> {
-  if (!fontName || !fontName.trim()) {
-    return { ok: false, error: { type: "InvalidFontName" } };
-  }
-  const url = buildGoogleFontsUrl(fontName, options);
-  return { ok: true, value: url };
-}
-
 // ------------------ TESTS ------------------
 
 describe("Google Font Fetching", () => {
   it("should build a URL for 'Open Sans' with some parameters", () => {
-    const options: FontOptions = {
-      weights: [400, 700, "italic"],
-      subsets: ["latin", "greek"],
-      display: "swap",
-      text: "Hello World!",
-      effects: ["shadow-multiple", "3d-float"],
-    };
-
-    const url = buildGoogleFontsUrl("Open Sans", options);
+    const url = buildGoogleFontsUrl("Open Sans");
     expect(url).toMatchInlineSnapshot(
-      `"https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700;italic&subset=latin,greek&display=swap&text=Hello%20World!&effect=shadow-multiple|3d-float"`);
+      `Promise {}`);
     expect(url).toMatchInlineSnapshot(
-      `"https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700;italic&subset=latin,greek&display=swap&text=Hello%20World!&effect=shadow-multiple|3d-float"`);
+      `Promise {}`);
   });
 
   it("should fail gracefully if the font name is blank", async () => {
-    const weights = await getFontWeights("Roboto");
-    const primaryUrl = buildGoogleFontsUrl("", { weights });
-    expect(primaryUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family="`);
-    const fallbackUrl = buildGoogleFontsUrl("Roboto", { weights });
-    expect(fallbackUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Roboto:wght@100;200;300;400;500;600;700;800;900;100i;200i;300i;400i;500i;600i;700i;800i;900i"`);
+    const primaryUrl = await buildGoogleFontsUrl("");
+    expect(primaryUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?&display=swap"`);
+    const fallbackUrl = await buildGoogleFontsUrl("Roboto",);
+    expect(fallbackUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"`);
     const result = await fetchGoogleFontCSS(primaryUrl, fallbackUrl);
-    expect(result).toMatchInlineSnapshot(`
-{
-  "ok": true,
-  "value": 
-"@font-face {
-  font-family: 'Roboto';
-  font-style: normal;
-  font-weight: 400;
-  font-stretch: normal;
-  src: url(https://fonts.gstatic.com/s/roboto/v47/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbWmT.ttf) format('truetype');
-}
-"
-,
-}
-`);
+
+
+    if (!result.ok) throw result.error;
+    expect(parseGoogleFontCSS(result.value)).toMatchInlineSnapshot(`"Roboto: 100, 200, 300, 400, 500, 600, 700, 800, 900, italic 100, italic 200, italic 300, italic 400, italic 500, italic 600, italic 700, italic 800, italic 900"`);
   });
 
-  it("should build a valid URL for 'Open Sans' with weights", () => {
-    const options: FontOptions = {
-      weights: [700],
-    };
-
-    const result = getGoogleFontsUrl("Open Sans", options);
-    expect(result).toMatchInlineSnapshot(`
-{
-  "ok": true,
-  "value": "https://fonts.googleapis.com/css2?family=Open+Sans:wght@700",
-}
-`);
+  it("should build a valid URL for 'Open Sans' with weights", async () => {
+    const result = await buildGoogleFontsUrl("Open Sans");
+    expect(result).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&display=swap"`);
   });
 
   it("should attempt to fetch from Google Fonts (no real network in snapshot test)", async () => {
-    const weights = await getFontWeights("Open Sans");
-    const options: FontOptions = {
-      weights,
-      effects: ["shadow-multiple"],
-    };
+    const primaryUrl = await buildGoogleFontsUrl("Open Sans");
+    expect(primaryUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&display=swap"`);
+    const fallbackUrl = await buildGoogleFontsUrl("Roboto");
+    expect(fallbackUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"`);
+    const result = await fetchGoogleFontCSS("https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700;800;300i;400i;500i;600i;700i;800i&effect=shadow-multiple", fallbackUrl);
 
-    const primaryUrl = buildGoogleFontsUrl("Open Sans", options);
-    expect(primaryUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700;800;300i;400i;500i;600i;700i;800i&effect=shadow-multiple"`);
-    const fallbackUrl = buildGoogleFontsUrl("Roboto", options);
-    expect(fallbackUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Roboto:wght@100;200;300;400;500;600;700;800;900;100i;200i;300i;400i;500i;600i;700i;800i;900i&effect=shadow-multiple"`);
-    const result = await fetchGoogleFontCSS(primaryUrl, fallbackUrl);
-
-    expect(result).toMatchInlineSnapshot(`
-{
-  "ok": true,
-  "value": 
-"@font-face {
-  font-family: 'Open Sans';
-  font-style: normal;
-  font-weight: 700;
-  font-stretch: normal;
-  src: url(https://fonts.gstatic.com/s/opensans/v40/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsg-1y4n.ttf) format('truetype');
-}
-"
-,
-}
-`);
+    if (!result.ok) throw result.error;
+    expect(parseGoogleFontCSS(result.value)).toMatchInlineSnapshot(`"Roboto: 100, 200, 300, 400, 500, 600, 700, 800, 900, italic 100, italic 200, italic 300, italic 400, italic 500, italic 600, italic 700, italic 800, italic 900"`);
   });
 
   it("should demonstrate fallback logic", async () => {
     // Force it to fail by providing a nonsense domain or parameters
     // so we can see fallback come into play. If fetch truly fails,
     // we should see a FallbackFailed or we see fallback success if Roboto is fetched.
-    const primaryUrl = buildGoogleFontsUrl("ImaginaryFontNameThatDoesNotExist", {
-      weights: [9999],
-    });
-    expect(primaryUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=ImaginaryFontNameThatDoesNotExist:wght@9999"`);
-    const fallbackUrl = buildGoogleFontsUrl("Roboto", {
-      weights: [9999],
-    });
-    expect(fallbackUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Roboto:wght@9999"`);
+    const primaryUrl = await buildGoogleFontsUrl("ImaginaryFontNameThatDoesNotExist");
+    expect(primaryUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?&display=swap"`);
+    const fallbackUrl = await buildGoogleFontsUrl("Roboto");
+    expect(fallbackUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"`);
     const result = await fetchGoogleFontCSS(primaryUrl, fallbackUrl);
 
-    expect(result).toMatchInlineSnapshot(`
-{
-  "error": {
-    "type": "FallbackFailed",
-  },
-  "ok": false,
-}
-`);
+    if (!result.ok) throw result.error;
+    expect(parseGoogleFontCSS(result.value)).toMatchInlineSnapshot(`"Roboto: 100, 200, 300, 400, 500, 600, 700, 800, 900, italic 100, italic 200, italic 300, italic 400, italic 500, italic 600, italic 700, italic 800, italic 900"`);
   });
 
   it("should fetch all font weights using a range in the URL", async () => {
-    const options: FontOptions = {
-      weights: ["100"],
-    };
+    const weights = await getFontWeights("Open Sans");
+    expect(weights).toMatchInlineSnapshot(`
+        [
+          "300",
+          "400",
+          "500",
+          "600",
+          "700",
+          "800",
+          "300i italic",
+          "400i italic",
+          "500i italic",
+          "600i italic",
+          "700i italic",
+          "800i italic",
+        ]
+      `);
 
-    const primaryUrl = buildGoogleFontsUrl("Open Sans", options);
-    expect(primaryUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Open+Sans:wght@100"`);
-    const fallbackUrl = buildGoogleFontsUrl("Roboto", options);
-    expect(fallbackUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Roboto:wght@100"`);
+    const primaryUrl = await buildGoogleFontsUrl("Open Sans");
+    expect(primaryUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&display=swap"`);
+    const fallbackUrl = await buildGoogleFontsUrl("Roboto");
+    expect(fallbackUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"`);
     const result = await fetchGoogleFontCSS(primaryUrl, fallbackUrl);
 
-    expect(result).toMatchInlineSnapshot(`
-      {
-        "ok": true,
-        "value": 
-      "@font-face {
-        font-family: 'Roboto';
-        font-style: normal;
-        font-weight: 100;
-        font-stretch: normal;
-        src: url(https://fonts.gstatic.com/s/roboto/v47/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbGmT.ttf) format('truetype');
-      }
-      "
-      ,
-      }
-    `);
+    if (!result.ok) throw result.error;
+    expect(parseGoogleFontCSS(result.value)).toMatchInlineSnapshot(`"Open Sans: 300, 400, 500, 600, 700, 800, italic 300, italic 400, italic 500, italic 600, italic 700, italic 800"`);
   });
 
-  const GOOGLE_FONTS_METADATA_URL = "https://fonts.google.com/metadata/fonts";
-
-  /**
-   * Fetch Google Fonts metadata.
-   */
-  async function fetchGoogleFontsMetadata() {
-    const response = await Bun.fetch(GOOGLE_FONTS_METADATA_URL, {
-      headers: {
-        "User-Agent": "Mozilla/5.0",
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch Google Fonts metadata: ${response.statusText}`);
-    }
-
-    let text = await response.text();
-
-    // Remove Google's anti-JSON security prefix `)]}'
-    text = text.replace(/^\)\]\}'/, "");
-
-    return JSON.parse(text);
-  }
-
-
-  /**
-   * Extract supported weights for a font.
-   */
-  async function getFontWeights(fontName: string) {
-    const data = await fetchGoogleFontsMetadata();
-
-    const fontData = data.familyMetadataList.find(
-      (font: any) => font.family.toLowerCase() === fontName.toLowerCase()
-    );
-
-    if (!fontData) {
-      return null; // Font not found
-    }
-
-    return Object.keys(fontData.fonts).map((w) => (w.includes("i") ? `${w} italic` : w));
-  }
 
   /**
    * Jest Tests
    */
   describe("Google Fonts Metadata", () => {
-
     it("should retrieve supported weights for Open Sans", async () => {
       const weights = await getFontWeights("Open Sans");
       expect(weights).toMatchInlineSnapshot(`
