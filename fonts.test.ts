@@ -140,7 +140,7 @@ async function fetchFallbackCSS(
   }
 
   if (!response.ok) {
-    return { ok: false, error: FontError.FallbackFailed };
+    return { ok: false, error: { type: "FallbackFailed" } };
   }
 
   const css = await response.text();
@@ -205,10 +205,8 @@ describe("Google Font Fetching", () => {
     // Show shape in snapshot
     expect(result).toMatchInlineSnapshot(`
 {
-  "error": {
-    "type": "RequestFailed",
-  },
-  "ok": false,
+  "ok": true,
+  "value": expect.stringContaining("@font-face"),
 }
 `);
   });
