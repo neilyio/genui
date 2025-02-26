@@ -26,7 +26,13 @@ const server = Bun.serve({
 
         const mergedUIChanges = {
           ...imageResult.value.ui_changes,
-          ...fontResult.vars
+          ...fontResult.vars,
+          header_font_family: fontResult.vars.header_font_family || "Arial",
+          header_font_weight: fontResult.vars.header_font_weight || "700",
+          message_font_family: fontResult.vars.message_font_family || "Arial",
+          message_font_weight: fontResult.vars.message_font_weight || "400",
+          placeholder_font_family: fontResult.vars.placeholder_font_family || "Arial",
+          placeholder_font_weight: fontResult.vars.placeholder_font_weight || "400",
         };
 
         // Ensure the response structure is correct

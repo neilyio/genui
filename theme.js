@@ -63,17 +63,37 @@ export function updateTheme(changes, css) {
   if (!changes) return;
 
   const root = document.documentElement;
+
+  // Apply theme changes
   Object.entries(changes).forEach(([key, value]) => {
-    // If AI sets something to null, skip it to maintain current value
     if (value === null) return;
     const mappedVar = CSS_VAR_MAP[key];
     if (mappedVar) {
-      // Set the CSS variable
       root.style.setProperty(mappedVar, value);
     }
   });
 
-  // Possibly update dependent variables
+  // Update font styles
+  if (changes.header_font_family) {
+    root.style.setProperty("--header-font-family", changes.header_font_family);
+  }
+  if (changes.header_font_weight) {
+    root.style.setProperty("--header-font-weight", changes.header_font_weight);
+  }
+  if (changes.message_font_family) {
+    root.style.setProperty("--message-font-family", changes.message_font_family);
+  }
+  if (changes.message_font_weight) {
+    root.style.setProperty("--message-font-weight", changes.message_font_weight);
+  }
+  if (changes.placeholder_font_family) {
+    root.style.setProperty("--placeholder-font-family", changes.placeholder_font_family);
+  }
+  if (changes.placeholder_font_weight) {
+    root.style.setProperty("--placeholder-font-weight", changes.placeholder_font_weight);
+  }
+
+  // Apply dependent updates
   updateDependentVariables();
 }
 
