@@ -151,6 +151,20 @@ async function fetchFallbackCSS(
   return { ok: true, value: css };
 }
 
+/**
+ * Build and return the Google Fonts URL for testing purposes.
+ */
+export function getGoogleFontsUrl(
+  fontName: string,
+  options: FontOptions
+): FontResult<string> {
+  if (!fontName || !fontName.trim()) {
+    return { ok: false, error: { type: "InvalidFontName" } };
+  }
+  const url = buildGoogleFontsUrl(fontName, options);
+  return { ok: true, value: url };
+}
+
 // ------------------ TESTS ------------------
 
 describe("Google Font Fetching", () => {
