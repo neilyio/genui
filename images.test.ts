@@ -293,9 +293,15 @@ test("color processing flow", async () => {
     throw new Error(`Flow processing failed: ${result.error}`);
   }
 
-  expect(result.value.base64Images).toBeInstanceOf(Array);
-  expect(result.value.base64Images.length).toBeGreaterThan(0);
-  expect(result.value.stitchedImage).toMatch(/^data:image\/png;base64,/);
+  expect(result.value.base64Images).toMatchInlineSnapshot(`
+    Array [
+      "data:image/jpeg;base64,...",
+      "data:image/jpeg;base64,...",
+      // Add more base64 strings as needed
+    ]
+  `);
+
+  expect(result.value.stitchedImage).toMatchInlineSnapshot(`"data:image/png;base64,..."`);
 
   expect(result.value.ui_changes).toMatchInlineSnapshot(`
     {
