@@ -1,5 +1,5 @@
 // client/src/js/script.js
-import { updateTheme } from '../theme.js';
+import { updateTheme } from './theme.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const messageInput = document.getElementById('message-input');
@@ -109,7 +109,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Handle example pill clicks
   document.querySelectorAll('.example-pill').forEach(pill => {
     pill.addEventListener('click', () => {
-      console.log("clicked");
       messageInput.value = pill.textContent;
       processMessage();
     });
@@ -172,12 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
   }
 
-  function insertFontCSS(css) {
-    const styleElement = document.createElement('style');
-    styleElement.type = 'text/css';
-    styleElement.appendChild(document.createTextNode(css));
-    document.head.appendChild(styleElement);
-  }
+  async function processMessage() {
     const userMessage = messageInput.value.trim();
     if (!userMessage && !currentImage) return;
 
@@ -226,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
     try {
-      const messages = [...getMessageHistory()];
+      const messages = [...getMessageHistory(), { role: 'user', content }];
 
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -261,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (error) {
       console.error('Error calling API:', error);
-      throw error;
+      appendMessage('assistant', `Sorry, there was an error: ${error.message}`);
     } finally {
       sendButton.disabled = false;     // Re-enable send button
       attachmentButton.disabled = false; // Re-enable attachment button
@@ -326,7 +320,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showImagePreview(currentImage, file.name);
     } catch (error) {
       console.error('Error processing image:', error);
-      throw error;
+      alert('Error processing image');
     }
   });
 
