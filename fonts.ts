@@ -48,56 +48,6 @@ async function fetchGoogleFontsMetadata() {
 }
 
 /**
- * Sends a request to the chat model to determine font variables based on a font string.
- * 
- * @param fontString - The font string detailing available fonts and weights.
- * @returns {Promise<ChatResult<{ header_font_family: string, header_font_weight: string, message_font_family: string, message_font_weight: string, placeholder_font_family: string, placeholder_font_weight: string }>>} - A promise resolving to the font variables.
- */
-export async function sendFontVarsRequest(
-  fontString: string
-): Promise<ChatResult<{ [key: string]: Json }>> {
-  // Prepare your messages (system + user)
-  const messages: ChatMessage[] = [
-    {
-      role: "system",
-      content: [
-        {
-          type: "text",
-          text: "Determine appropriate font variables for the given font string.",
-        },
-      ],
-    },
-    {
-      role: "user",
-      content: [
-        {
-          type: "text",
-          text: fontString,
-        },
-      ],
-    },
-  ];
-
-  // Define the JSON schema for font variables
-  const payload = chatPayload({
-    name: "font_vars_query",
-    messages,
-    properties: {
-      header_font_family: { type: "string" },
-      header_font_weight: { type: "string" },
-      message_font_family: { type: "string" },
-      message_font_weight: { type: "string" },
-      placeholder_font_family: { type: "string" },
-      placeholder_font_weight: { type: "string" },
-    },
-  });
-
-  // Send the request, parse the response, and return the font variables
-  return sendChatRequest(payload).then(parseChatResponse);
-}
-
-
-/**
  * Extract supported weights for a font.
  */
 export async function getFontWeights(fontName: string) {
@@ -344,5 +294,55 @@ export async function sendFontNameRequest(
   });
 
   // Send the request, parse the response, and return the font names
+  return sendChatRequest(payload).then(parseChatResponse);
+}
+
+
+/**
+ * Sends a request to the chat model to determine font variables based on a font string.
+ * 
+ * @param fontString - The font string detailing available fonts and weights.
+ * @returns {Promise<ChatResult<{ header_font_family: string, header_font_weight: string, message_font_family: string, message_font_weight: string, placeholder_font_family: string, placeholder_font_weight: string }>>} - A promise resolving to the font variables.
+ */
+export async function sendFontVarsRequest(
+  fontString: string
+): Promise<ChatResult<{ [key: string]: Json }>> {
+  // Prepare your messages (system + user)
+  const messages: ChatMessage[] = [
+    {
+      role: "system",
+      content: [
+        {
+          type: "text",
+          text: "Determine appropriate font variables for the given font string.",
+        },
+      ],
+    },
+    {
+      role: "user",
+      content: [
+        {
+          type: "text",
+          text: fontString,
+        },
+      ],
+    },
+  ];
+
+  // Define the JSON schema for font variables
+  const payload = chatPayload({
+    name: "font_vars_query",
+    messages,
+    properties: {
+      header_font_family: { type: "string" },
+      header_font_weight: { type: "string" },
+      message_font_family: { type: "string" },
+      message_font_weight: { type: "string" },
+      placeholder_font_family: { type: "string" },
+      placeholder_font_weight: { type: "string" },
+    },
+  });
+
+  // Send the request, parse the response, and return the font variables
   return sendChatRequest(payload).then(parseChatResponse);
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { buildGoogleFontsUrl, fetchGoogleFontCSS, getFontWeights, parseGoogleFontCSS, sendFontNameRequest } from "./fonts";
+import { buildGoogleFontsUrl, fetchGoogleFontCSS, getFontWeights, parseGoogleFontCSS, sendFontNameRequest, sendFontVarsRequest } from "./fonts";
 
 // ------------------ TESTS ------------------
 
@@ -20,16 +20,16 @@ describe("Google Font Fetching", () => {
       if (!result.ok) throw result.error;
       expect(result.value).toMatchInlineSnapshot(`
         {
+          "fallback_font_name": "Rajdhani",
           "primary_font_name": "Orbitron",
-          "fallback_font_name": "Roboto",
         }
       `);
 
-      const primaryUrl = await buildGoogleFontsUrl(result.value.primary_font_name);
-      const fallbackUrl = await buildGoogleFontsUrl(result.value.fallback_font_name);
+      const primaryUrl = await buildGoogleFontsUrl(result.value.primary_font_name?.toString?.() ?? "");
+      const fallbackUrl = await buildGoogleFontsUrl(result.value.fallback_font_name?.toString?.() ?? "");
 
-      expect(primaryUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Orbitron:ital,wght@0,400;0,700;1,400;1,700&display=swap"`);
-      expect(fallbackUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"`);
+      expect(primaryUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Orbitron:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900&display=swap"`);
+      expect(fallbackUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Rajdhani:ital,wght@0,300;0,400;0,500;0,600;0,700&display=swap"`);
     }, 10000);
 
     it("should suggest an exotic font for a 'vintage' theme", async () => {
@@ -39,16 +39,16 @@ describe("Google Font Fetching", () => {
       if (!result.ok) throw result.error;
       expect(result.value).toMatchInlineSnapshot(`
         {
-          "primary_font_name": "Lora",
-          "fallback_font_name": "Roboto",
+          "fallback_font_name": "Libre Baskerville",
+          "primary_font_name": "Cormorant Garamond",
         }
       `);
 
-      const primaryUrl = await buildGoogleFontsUrl(result.value.primary_font_name);
-      const fallbackUrl = await buildGoogleFontsUrl(result.value.fallback_font_name);
+      const primaryUrl = await buildGoogleFontsUrl(result.value.primary_font_name?.toString?.() ?? "");
+      const fallbackUrl = await buildGoogleFontsUrl(result.value.fallback_font_name?.toString?.() ?? "");
 
-      expect(primaryUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,700;1,400;1,700&display=swap"`);
-      expect(fallbackUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"`);
+      expect(primaryUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap"`);
+      expect(fallbackUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap"`);
     }, 10000);
 
     it("should suggest an exotic font for a 'gothic' theme", async () => {
@@ -58,19 +58,36 @@ describe("Google Font Fetching", () => {
       if (!nameResult.ok) throw nameResult.error;
       expect(nameResult.value).toMatchInlineSnapshot(`
         {
-          "primary_font_name": "UnifrakturCook",
-          "fallback_font_name": "Roboto",
+          "fallback_font_name": "Fruktur",
+          "primary_font_name": "UnifrakturMaguntia",
         }
       `);
 
-      const primaryUrl = await buildGoogleFontsUrl(nameResult.value.primary_font_name);
-      const fallbackUrl = await buildGoogleFontsUrl(nameResult.value.fallback_font_name);
+      const primaryUrl = await buildGoogleFontsUrl(nameResult.value.primary_font_name?.toString?.() ?? "");
+      const fallbackUrl = await buildGoogleFontsUrl(nameResult.value.fallback_font_name?.toString?.() ?? "");
 
-      expect(primaryUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=UnifrakturCook:ital,wght@0,700&display=swap"`);
+      expect(primaryUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=UnifrakturMaguntia:ital,wght@0,400&display=swap"`);
       const cssResult = await fetchGoogleFontCSS(primaryUrl, fallbackUrl);
       if (!cssResult.ok) throw cssResult.error;
-      expect(parseGoogleFontCSS(cssResult.value)).toMatchInlineSnapshot(`"UnifrakturCook: 700"`);
-    }, 10000);
+
+      const fontString = parseGoogleFontCSS(cssResult.value);
+      expect(fontString).toMatchInlineSnapshot(`"UnifrakturMaguntia: 400"`);
+
+      const varsResult = await sendFontVarsRequest(fontString);
+      if (!varsResult.ok) throw varsResult.error;
+
+      expect(varsResult.value).toMatchInlineSnapshot(`
+        {
+          "header_font_family": "UnifrakturMaguntia",
+          "header_font_weight": "400",
+          "message_font_family": "UnifrakturMaguntia",
+          "message_font_weight": "400",
+          "placeholder_font_family": "UnifrakturMaguntia",
+          "placeholder_font_weight": "400",
+        }
+      `);
+
+    }, 20000);
   });
 
   it.skip("should fail gracefully if the font name is blank", async () => {
