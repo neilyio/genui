@@ -40,26 +40,18 @@ export function buildGoogleFontsUrl(
   const familyParams = fontList.map((font) => {
     let formattedFont = font.trim().replace(/\s+/g, "+");
 
-    // Handle weights
-    if (options.weights && options.weights.length > 0) {
-      formattedFont += `:wght@${options.weights.join(";")}`;
-    }
+    // Handle weights and axes
+    const weightParam = options.weights ? `wght@${options.weights.join(";")}` : "";
+    const axesParam = options.axes
+      ? Object.entries(options.axes)
+          .map(([key, value]) => `${key},${value}`)
+          .join(";")
+      : "";
 
-    // Handle italics
-    if (options.italics && options.italics.length > 0) {
-      const italicsParam = options.italics
-        .map(({ italic, weight }) => `${italic},${weight}`)
-        .join(";");
-      formattedFont += `:ital,wght@${italicsParam}`;
-    }
+    const params = [weightParam, axesParam].filter(Boolean).join(";");
 
-    // Handle variable font axes
-    if (options.axes && Object.keys(options.axes).length > 0) {
-      const axes = Object.keys(options.axes)
-        .sort() // Sort alphabetically
-        .map((key) => `${key}@${options.axes![key]}`)
-        .join(";");
-      formattedFont += `:${axes}`;
+    if (params) {
+      formattedFont += `:${params}`;
     }
 
     return `family=${formattedFont}`;
