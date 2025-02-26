@@ -220,7 +220,16 @@ describe("Google Font Fetching", () => {
 `);
   });
 
-  it("should demonstrate fallback logic", async () => {
+  it("should fetch all font weights using a range in the URL", async () => {
+    const options: FontOptions = {
+      weights: ["wght@100..900"],
+    };
+
+    const result = await fetchGoogleFontCSS("Khula", options);
+
+    expect(result.ok).toBe(true);
+    expect(result.value).toContain("@font-face");
+  });
     // Force it to fail by providing a nonsense domain or parameters
     // so we can see fallback come into play. If fetch truly fails,
     // we should see a FallbackFailed or we see fallback success if Roboto is fetched.
