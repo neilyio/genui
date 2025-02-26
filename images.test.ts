@@ -61,16 +61,8 @@ type ResultOk<T> = { ok: true; value: T };
 type ResultErr = { ok: false; error: string };
 type Result<T> = ResultOk<T> | ResultErr;
 
-function ok(value: ColorInfo): ResultOk<ColorInfo> {
+function ok<T>(value: T): ResultOk<T> {
   return { ok: true, value };
-  ReadableLight1: ColorInfo | null;
-  ReadableLight2: ColorInfo | null;
-  ReadableDark1: ColorInfo | null;
-  ReadableDark2: ColorInfo | null;
-  ReadableLight1: ColorInfo | null;
-  ReadableLight2: ColorInfo | null;
-  ReadableDark1: ColorInfo | null;
-  ReadableDark2: ColorInfo | null;
 }
 
 function err(message: string): ResultErr {
@@ -519,12 +511,12 @@ const testPaletteGeneration = async () => {
   // Test assertions
   expect(darkMode).toMatchInlineSnapshot(`
     {
-      "assistant_message_background": "#f4d45c",
+      "assistant_message_background": "#404c63",
       "assistant_message_text_color": "#b4b470",
       "attachment_button_bg": "#5484a4",
       "attachment_button_color": "#2c3444",
       "background_color": "#5484a4",
-      "border_color": "#2c3444",
+      "border_color": "#b4b470",
       "chat_background": "#5484a4",
       "header_background": "#7c6308",
       "header_text_color": "#f6de82",
@@ -535,14 +527,14 @@ const testPaletteGeneration = async () => {
       "send_button_bg": "#f4d45c",
       "send_button_color": "#f6de82",
       "text_color": "#f6de82",
-      "user_message_background": "#b4b470",
+      "user_message_background": "#404c63",
       "user_message_text_color": "#7c6308",
     }
   `);
 
   expect(lightMode).toMatchInlineSnapshot(`
     {
-      "assistant_message_background": "#b4b470",
+      "assistant_message_background": "#c6c691",
       "assistant_message_text_color": "#2c3444",
       "attachment_button_bg": "#b4b470",
       "attachment_button_color": "#f6de82",
@@ -558,7 +550,7 @@ const testPaletteGeneration = async () => {
       "send_button_bg": "#5484a4",
       "send_button_color": "#7c6308",
       "text_color": "#7c6308",
-      "user_message_background": "#5484a4",
+      "user_message_background": "#c6c691",
       "user_message_text_color": "#f6de82",
     }
   `);
