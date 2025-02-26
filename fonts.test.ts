@@ -163,11 +163,16 @@ describe("Google Font Fetching", () => {
     expect(url).toMatchInlineSnapshot(
       `\"https://fonts.googleapis.com/css?family=Open+Sans:400,700,italic&subset=latin,greek&display=swap&text=Hello%20World!&effect=shadow-multiple|3d-float\"`
     );
+    expect(url).toMatchInlineSnapshot(
+      `\"https://fonts.googleapis.com/css?family=Open+Sans:400,700,italic&subset=latin,greek&display=swap&text=Hello%20World!&effect=shadow-multiple|3d-float\"`
+    );
   });
 
   it("should fail gracefully if the font name is blank", async () => {
     const primaryUrl = buildGoogleFontsUrl("", {});
+    expect(primaryUrl).toMatchInlineSnapshot(`\"https://fonts.googleapis.com/css?family=\"`);
     const fallbackUrl = buildGoogleFontsUrl("Roboto", {});
+    expect(fallbackUrl).toMatchInlineSnapshot(`\"https://fonts.googleapis.com/css?family=Roboto\"`);
     const result = await fetchGoogleFontCSS(primaryUrl, fallbackUrl);
     expect(result).toMatchInlineSnapshot(`
 {
@@ -203,7 +208,9 @@ describe("Google Font Fetching", () => {
     // Here, let's see the immediate shape of the result object.
     // (You would mock fetch in a real unit test.)
     const primaryUrl = buildGoogleFontsUrl("Open Sans", options);
+    expect(primaryUrl).toMatchInlineSnapshot(`\"https://fonts.googleapis.com/css?family=Open+Sans:700&effect=shadow-multiple\"`);
     const fallbackUrl = buildGoogleFontsUrl("Roboto", options);
+    expect(fallbackUrl).toMatchInlineSnapshot(`\"https://fonts.googleapis.com/css?family=Roboto:700&effect=shadow-multiple\"`);
     const result = await fetchGoogleFontCSS(primaryUrl, fallbackUrl);
 
     // Show shape in snapshot
@@ -224,9 +231,11 @@ describe("Google Font Fetching", () => {
     const primaryUrl = buildGoogleFontsUrl("ImaginaryFontNameThatDoesNotExist", {
       weights: [9999],
     });
+    expect(primaryUrl).toMatchInlineSnapshot(`\"https://fonts.googleapis.com/css?family=ImaginaryFontNameThatDoesNotExist:9999\"`);
     const fallbackUrl = buildGoogleFontsUrl("Roboto", {
       weights: [9999],
     });
+    expect(fallbackUrl).toMatchInlineSnapshot(`\"https://fonts.googleapis.com/css?family=Roboto:9999\"`);
     const result = await fetchGoogleFontCSS(primaryUrl, fallbackUrl);
 
     expect(result).toMatchInlineSnapshot(`
@@ -245,7 +254,9 @@ describe("Google Font Fetching", () => {
     };
 
     const primaryUrl = buildGoogleFontsUrl("Open Sans", options);
+    expect(primaryUrl).toMatchInlineSnapshot(`\"https://fonts.googleapis.com/css?family=Open+Sans:wght@100..900\"`);
     const fallbackUrl = buildGoogleFontsUrl("Roboto", options);
+    expect(fallbackUrl).toMatchInlineSnapshot(`\"https://fonts.googleapis.com/css?family=Roboto:wght@100..900\"`);
     const result = await fetchGoogleFontCSS(primaryUrl, fallbackUrl);
 
     expect(result).toMatchInlineSnapshot(`
