@@ -78,44 +78,31 @@ export function buildGoogleFontsUrl(
 }
 
 /**
- * Fetch the Google Fonts CSS from the built URL, returning a Result.
- * This will try a fallback if the primary fetch fails.
- *
- * - If we fail to fetch from the main URL, we try the fallback URL.
- * - If that fails too, we return { ok: false, error: FontError.FallbackFailed }.
+ * Fetch the Google Fonts CSS from a given URL, returning a Result.
+ * This will try a fallback URL if the primary fetch fails.
  */
 export async function fetchGoogleFontCSS(
-  fontName: string,
-  options: FontOptions,
-  fallbackFontName: string = "Roboto" // some known fallback
+  primaryUrl: string,
+  fallbackUrl: string
 ): Promise<FontResult<string>> {
-  // Basic validation
-  if (!fontName || !fontName.trim()) {
-    return { ok: false, error: { type: "InvalidFontName" } };
-  }
-
-  // Build primary URL
-  const primaryUrl = buildGoogleFontsUrl(fontName, options);
-
   // Try to fetch from the primary URL
   let response: Response;
   try {
     response = await Bun.fetch(primaryUrl);
   } catch (err) {
     // If fetch threw, let's skip directly to fallback
-    return await fetchFallbackCSS(fallbackFontName, options);
+    return await fetchFallbackCSS(fallbackUrl);
   }
 
   if (!response.ok) {
     // If we got a non-OK response, fallback
-    return await fetchFallbackCSS(fallbackFontName, options);
+    return await fetchFallbackCSS(fallbackUrl);
   }
 
   const css = await response.text();
   // If we get something that looks invalid or empty, try fallback
   if (!css || !css.includes("font-family")) {
-    // We can decide what "invalid" means. For simplicity, let's fallback
-    return await fetchFallbackCSS(fallbackFontName, options);
+    return await fetchFallbackCSS(fallbackUrl);
   }
 
   // If all good, we succeed
@@ -123,14 +110,9 @@ export async function fetchGoogleFontCSS(
 }
 
 /**
- * Helper to fetch the fallback font if the primary request fails.
+ * Helper to fetch the fallback font from a given URL if the primary request fails.
  */
-async function fetchFallbackCSS(
-  fallbackFontName: string,
-  options: FontOptions
-): Promise<FontResult<string>> {
-  const fallbackUrl = buildGoogleFontsUrl(fallbackFontName, options);
-
+async function fetchFallbackCSS(fallbackUrl: string): Promise<FontResult<string>> {
   let response: Response;
   try {
     response = await Bun.fetch(fallbackUrl);
