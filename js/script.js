@@ -179,6 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.head.appendChild(styleElement);
   }
   async function processMessage() {
+  async function processMessage() {
     const userMessage = messageInput.value.trim();
     if (!userMessage && !currentImage) return;
 
