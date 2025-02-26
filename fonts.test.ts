@@ -245,8 +245,11 @@ describe("Google Font Fetching", () => {
 
     const result = await fetchGoogleFontCSS("Khula", options);
 
-    expect(result.ok).toBe(true);
-    if (result.ok) expect(result.value).toContain("@font-face");
-    else throw new Error(`${JSON.stringify(result.error)}`);
+    expect(result).toMatchInlineSnapshot(`
+{
+  "ok": true,
+  "value": expect.stringContaining("@font-face"),
+}
+`);
   });
 });
