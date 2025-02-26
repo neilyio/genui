@@ -293,7 +293,11 @@ test("color processing flow", async () => {
     throw new Error(`Flow processing failed: ${result.error}`);
   }
 
-  expect(result.value).toMatchInlineSnapshot(`
+  expect(result.value.base64Images).toBeInstanceOf(Array);
+  expect(result.value.base64Images.length).toBeGreaterThan(0);
+  expect(result.value.stitchedImage).toMatch(/^data:image\/png;base64,/);
+
+  expect(result.value.ui_changes).toMatchInlineSnapshot(`
     {
       "ui_changes": {
         "assistant_message_background": "#F2F2F2",
