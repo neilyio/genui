@@ -109,6 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Handle example pill clicks
   document.querySelectorAll('.example-pill').forEach(pill => {
     pill.addEventListener('click', () => {
+      console.log("clicked");
       messageInput.value = pill.textContent;
       processMessage();
     });
@@ -220,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
     try {
-      const messages = [...getMessageHistory(), { role: 'user', content }];
+      const messages = [...getMessageHistory()];
 
       const response = await fetch('/api/chat', {
         method: 'POST',
