@@ -61,7 +61,7 @@ type ResultOk<T> = { ok: true; value: T };
 type ResultErr = { ok: false; error: string };
 type Result<T> = ResultOk<T> | ResultErr;
 
-function ok<T>(value: T): ResultOk<T> {
+function ok(value: ColorInfo): ResultOk<ColorInfo> {
   return { ok: true, value };
   ReadableLight1: ColorInfo | null;
   ReadableLight2: ColorInfo | null;
