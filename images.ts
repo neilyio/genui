@@ -187,7 +187,7 @@ async function stitchHorizontally(
   }
 }
 
-async function stitchHorizontallyAlpha(
+export async function stitchHorizontallyAlpha(
   buffers: Buffer[]
 ): Promise<Result<sharp.Sharp>> {
   if (buffers.length === 0) {
@@ -286,23 +286,3 @@ export async function processChatMessageFlow(contents: ChatMessageContent[]): Pr
 
   return ok(css.value);
 }
-// (async () => {
-//   const searchTerm = 'cute puppies'; // Change this query as needed
-//   const results = await scrapeBingImages(searchTerm, 10);
-
-//   console.log(`Top ${results.length} image URLs for "${searchTerm}":`);
-//   for (let i = 0; i < results.length; i++) {
-//     const url = results[i];
-//     try {
-//       const resp = await fetch(url);
-//       const arrayBuffer = await resp.arrayBuffer();
-
-//       // Print the "image state": e.g., HTTP status code and size
-//       console.log(
-//         `${i + 1} - status: ${resp.status}, size: ${arrayBuffer.byteLength} bytes`
-//       );
-//     } catch (error) {
-//       console.error(`Error fetching image at ${url}:`, error);
-//     }
-//   }
-// })();
