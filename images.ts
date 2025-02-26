@@ -230,14 +230,20 @@ async function stitchHorizontallyAlpha(
 
 export async function processChatMessageFlow(contents: ChatMessageContent[]): Promise<any> {
   let imageUrls: string[] = [];
+  let base64Images: string[] = [];
 
   for (const content of contents) {
     if (content.type === "text") {
       const urls = await scrapeBingImages(content.text, 4);
       imageUrls = imageUrls.concat(urls);
     } else if (content.type === "image_url") {
-      const urls = content.image_url.map(url => url.url);
-      imageUrls = imageUrls.concat(urls);
+      const urls = content.image_url.map(url => {
+        if (!url.url.startsWith("data:image/")) {
+          throw new Error("Expected base64 image URL");
+        }
+        return url.url;
+      });
+      base64Images = base64Images.concat(urls);
     }
   }
 
@@ -263,9 +269,13 @@ export async function processChatMessageFlow(contents: ChatMessageContent[]): Pr
   const stitchedBuffer = await stitchedResult.value.toBuffer();
   const base64Image = `data:image/png;base64,${stitchedBuffer.toString("base64")}`;
 
-  const urls: ChatMessageContent[] = [
-    { type: "image_url", image_url: { url: base64Image, detail: "low" } },
-  ];
+  const urls: ChatMessageContent[] = base64Images.map(url => ({
+    type: "image_url", image_url: { url, detail: "low" }
+  }));
+
+  urls.push({
+    type: "image_url", image_url: { url: base64Image, detail: "low" }
+  });
 
   const css = await sendPaletteRequest(urls);
   if (!css.ok) throw new Error(`${JSON.stringify(css.error)}`);
