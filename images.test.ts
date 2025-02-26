@@ -327,6 +327,10 @@ interface PaletteColors {
   DarkMuted: ColorInfo | null;
   LightVibrant: ColorInfo | null;
   LightMuted: ColorInfo | null;
+  ReadableLight1: ColorInfo | null;
+  ReadableLight2: ColorInfo | null;
+  ReadableDark1: ColorInfo | null;
+  ReadableDark2: ColorInfo | null;
 }
 
 type ColorVariant = keyof PaletteColors;
