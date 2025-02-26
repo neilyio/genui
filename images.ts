@@ -228,7 +228,13 @@ export async function stitchHorizontallyAlpha(
   }
 }
 
-export async function processChatMessageFlow(contents: ChatMessageContent[]): Promise<Result<any>> {
+type ProcessChatMessageFlowResult = {
+  ui_changes: any;
+  base64Images: string[];
+  stitchedImage: string;
+};
+
+export async function processChatMessageFlow(contents: ChatMessageContent[]): Promise<Result<ProcessChatMessageFlowResult>> {
   let imageUrls: string[] = [];
   let base64Images: string[] = [];
 
@@ -284,5 +290,9 @@ export async function processChatMessageFlow(contents: ChatMessageContent[]): Pr
   const css = await sendPaletteRequest(urls);
   if (!css.ok) return err(JSON.stringify(css.error));
 
-  return ok(css.value);
+  return ok({
+    ui_changes: css.value,
+    base64Images,
+    stitchedImage: base64Image,
+  });
 }
