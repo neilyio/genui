@@ -111,8 +111,27 @@ describe("Google Font Fetching", () => {
     });
 
     it("should return mocked CSS summary for 'Roboto'", () => {
-      const mockCssSummary = "Roboto: 100, 200, 300, 400, 500, 600, 700, 800, 900, italic 100, italic 200, italic 300, italic 400, italic 500, italic 600, italic 700, italic 800, italic 900";
-      const cssSummary = parseGoogleFontCSS(mockCssSummary);
+      const mockCssText = `
+        @font-face { font-family: 'Roboto'; font-style: normal; font-weight: 100; }
+        @font-face { font-family: 'Roboto'; font-style: normal; font-weight: 200; }
+        @font-face { font-family: 'Roboto'; font-style: normal; font-weight: 300; }
+        @font-face { font-family: 'Roboto'; font-style: normal; font-weight: 400; }
+        @font-face { font-family: 'Roboto'; font-style: normal; font-weight: 500; }
+        @font-face { font-family: 'Roboto'; font-style: normal; font-weight: 600; }
+        @font-face { font-family: 'Roboto'; font-style: normal; font-weight: 700; }
+        @font-face { font-family: 'Roboto'; font-style: normal; font-weight: 800; }
+        @font-face { font-family: 'Roboto'; font-style: normal; font-weight: 900; }
+        @font-face { font-family: 'Roboto'; font-style: italic; font-weight: 100; }
+        @font-face { font-family: 'Roboto'; font-style: italic; font-weight: 200; }
+        @font-face { font-family: 'Roboto'; font-style: italic; font-weight: 300; }
+        @font-face { font-family: 'Roboto'; font-style: italic; font-weight: 400; }
+        @font-face { font-family: 'Roboto'; font-style: italic; font-weight: 500; }
+        @font-face { font-family: 'Roboto'; font-style: italic; font-weight: 600; }
+        @font-face { font-family: 'Roboto'; font-style: italic; font-weight: 700; }
+        @font-face { font-family: 'Roboto'; font-style: italic; font-weight: 800; }
+        @font-face { font-family: 'Roboto'; font-style: italic; font-weight: 900; }
+      `;
+      const cssSummary = parseGoogleFontCSS(mockCssText);
       expect(cssSummary).toBe(mockCssSummary);
     });
   });
