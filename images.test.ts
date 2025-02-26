@@ -1,8 +1,9 @@
 import { test, expect } from "bun:test";
-import { scrapeBingImages } from "./images";
+import { downsample, scrapeBingImages } from "./images";
 import sharp from 'sharp';
 import { Vibrant } from "node-vibrant/node";
 import { sendPaletteRequest } from "./all";
+import type { ChatMessageContent } from "./chat";
 
 test.skip("searches bing", async () => {
   const n = 2;
@@ -90,41 +91,7 @@ async function fetchImageBuffer(url: string): Promise<Result<Buffer>> {
  *    This helps avoid huge images in memory. We'll maintain aspect ratio here.
  *    If you want to force cropping or squashing, see the next function.
  */
-async function downsample(
-  buffer: Buffer,
-  maxDimension: number
-): Promise<Result<Buffer>> {
-  try {
-    const image = sharp(buffer);
-    const metadata = await image.metadata();
 
-    if (!metadata.width || !metadata.height) {
-      return err("Missing metadata (width/height).");
-    }
-
-    // Only downsample if it's bigger than maxDimension
-    const w = metadata.width;
-    const h = metadata.height;
-
-    if (w <= maxDimension && h <= maxDimension) {
-      // No need to resize
-      return ok(buffer);
-    }
-
-    // Keep aspect ratio, so figure out the scaling
-    const scale = Math.min(maxDimension / w, maxDimension / h);
-    const newWidth = Math.round(w * scale);
-    const newHeight = Math.round(h * scale);
-
-    const resized = await sharp(buffer)
-      .resize(newWidth, newHeight, { fit: "inside" })
-      .toBuffer();
-
-    return ok(resized);
-  } catch (e: any) {
-    return err(`Downsample error: ${String(e)}`);
-  }
-}
 
 /**
  * 7) Force a specific width/height by squashing or stretching
@@ -309,7 +276,7 @@ test.skip("stitch color palettes from 10 URLs", async () => {
 
 test("combine to one and gpt analyze", async () => {
   const n = 4;
-  const searchTerm = "legend of zelda";
+  const searchTerm = "superman color palette";
   const imageUrls = await scrapeBingImages(searchTerm, n);
 
   const promises =
@@ -325,22 +292,25 @@ test("combine to one and gpt analyze", async () => {
         .map(r => r.value)
     );
 
-  const urls = buffers.map(buffer => `data:image/jpeg;base64,${buffer.toString('base64')}`);
-
   // const stitched = await stitchHorizontallyAlpha(buffers).then(r => {
   //   if (!r.ok) throw new Error(`${r.error}`);
   //   return r.value;
   // });
+  // 
+  const urls: ChatMessageContent[] = buffers.map(buffer => `data:image/jpeg;base64,${buffer.toString('base64')}`).map(url => ({
+    type: "image_url", image_url: { url, detail: "low" }
+  }));
+
 
   let css = await sendPaletteRequest(urls).then(r => {
     if (!r.ok) throw new Error(`${JSON.stringify(r.error)}`);
     return r.value;
   });
 
-  Bun.write("./testcolors.json", JSON.stringify(css));
+  Bun.write("./testcolors.json", JSON.stringify(css.ui_changes));
 
   // await stitched.toFile("stitched.png");
-}, 20000);
+}, 30000);
 
 
 async function stitchHorizontallyAlpha(
