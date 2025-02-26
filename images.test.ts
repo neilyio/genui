@@ -275,6 +275,7 @@ test.skip("stitch color palettes from 10 URLs", async () => {
 }, 20000);
 
 test("combine to one and gpt analyze", async () => {
+  // This test is now redundant as the logic has been moved to processChatMessageFlow
   const n = 4;
   const searchTerm = "superman color palette";
   const imageUrls = await scrapeBingImages(searchTerm, n);
