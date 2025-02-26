@@ -2,6 +2,7 @@ import { test, expect } from "bun:test";
 import { scrapeBingImages } from "./images";
 import sharp from 'sharp';
 import { Vibrant } from "node-vibrant/node";
+import { sendPaletteRequest } from "./all";
 
 test.skip("searches bing", async () => {
   const n = 2;
@@ -251,222 +252,136 @@ async function sharpComposite(swatches: { rgb: [number, number, number] }[]): Pr
     })));
 }
 
-// Define interfaces for the color palette
-interface ColorInfo {
-  hex: string;
-  population: number;
-}
+test.skip("stitch color palettes from 10 URLs", async () => {
+  const n = 3;
+  const searchTerm = "black and white";
+  const urls = await scrapeBingImages(searchTerm, n);
+  const swatches = [];
+  for (const url of urls) {
+    try {
+      const resp = await Bun.fetch(url);
+      const arrayBuffer = await resp.arrayBuffer();
 
-interface PaletteColors {
-  Vibrant: ColorInfo | null;
-  Muted: ColorInfo | null;
-  DarkVibrant: ColorInfo | null;
-  DarkMuted: ColorInfo | null;
-  LightVibrant: ColorInfo | null;
-  LightMuted: ColorInfo | null;
-  ReadableLight1: ColorInfo | null;
-  ReadableLight2: ColorInfo | null;
-  ReadableDark1: ColorInfo | null;
-  ReadableDark2: ColorInfo | null;
-}
-
-type ColorVariant = keyof PaletteColors;
-
-// Refactored palette class with proper TypeScript types
-class CustomPalette {
-  private colors: Record<ColorVariant, ColorInfo | null>;
-
-  constructor(vibrantPalette: Record<string, any>) {
-    this.colors = {
-      Vibrant: vibrantPalette.Vibrant ? { hex: vibrantPalette.Vibrant.hex, population: vibrantPalette.Vibrant.population } : null,
-      Muted: vibrantPalette.Muted ? { hex: vibrantPalette.Muted.hex, population: vibrantPalette.Muted.population } : null,
-      DarkVibrant: vibrantPalette.DarkVibrant ? { hex: vibrantPalette.DarkVibrant.hex, population: vibrantPalette.DarkVibrant.population } : null,
-      DarkMuted: vibrantPalette.DarkMuted ? { hex: vibrantPalette.DarkMuted.hex, population: vibrantPalette.DarkMuted.population } : null,
-      LightVibrant: vibrantPalette.LightVibrant ? { hex: vibrantPalette.LightVibrant.hex, population: vibrantPalette.LightVibrant.population } : null,
-      LightMuted: vibrantPalette.LightMuted ? { hex: vibrantPalette.LightMuted.hex, population: vibrantPalette.LightMuted.population } : null,
-      ReadableLight1: vibrantPalette.LightMuted ? this.adjustLightness(vibrantPalette.LightMuted, 0.1) : null,
-      ReadableLight2: vibrantPalette.LightMuted ? this.adjustLightness(vibrantPalette.LightMuted, 0.2) : null,
-      ReadableDark1: vibrantPalette.DarkMuted ? this.adjustLightness(vibrantPalette.DarkMuted, 0.1) : null,
-      ReadableDark2: vibrantPalette.DarkMuted ? this.adjustLightness(vibrantPalette.DarkMuted, 0.2) : null,
-    };
-  }
-
-  private adjustLightness(color: ColorInfo, amount: number): ColorInfo {
-    const hsl = this.hexToHsl(color.hex);
-    hsl[2] = Math.min(1, hsl[2] + amount); // Increase lightness
-    return { hex: this.hslToHex(hsl), population: color.population };
-  }
-
-  private hexToHsl(hex: string): [number, number, number] {
-    // Convert hex to HSL
-    const r = parseInt(hex.slice(1, 3), 16) / 255;
-    const g = parseInt(hex.slice(3, 5), 16) / 255;
-    const b = parseInt(hex.slice(5, 7), 16) / 255;
-
-    const max = Math.max(r, g, b);
-    const min = Math.min(r, g, b);
-    let h = 0, s = 0, l = (max + min) / 2;
-
-    if (max !== min) {
-      const d = max - min;
-      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-      switch (max) {
-        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-        case g: h = (b - r) / d + 2; break;
-        case b: h = (r - g) / d + 4; break;
+      const palette = await Vibrant.from(Buffer.from(arrayBuffer)).getPalette();
+      const paletteSwatches = [
+        palette.Vibrant,
+        palette.Muted,
+        palette.DarkVibrant,
+        palette.DarkMuted,
+        palette.LightVibrant,
+        palette.LightMuted,
+      ];
+      // expect(`${hexs}`).toMatchInlineSnapshot(`"#f4d45c,#5484a4,#7c6308,#2c3444,#f6de82,#b4b470"`);
+      for (const swatch of paletteSwatches) {
+        if (swatch) swatches.push(swatch);
       }
-      h /= 6;
+    } catch (err) {
+      continue
     }
-
-    return [h, s, l];
   }
 
-  private hslToHex(hsl: [number, number, number]): string {
-    // Convert HSL to hex
-    const [h, s, l] = hsl;
-    const hue2rgb = (p: number, q: number, t: number) => {
-      if (t < 0) t += 1;
-      if (t > 1) t -= 1;
-      if (t < 1 / 6) return p + (q - p) * 6 * t;
-      if (t < 1 / 2) return q;
-      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-      return p;
-    };
+  removeLightnessOutlier(swatches, (s: any) => s.hsl[2], 1.2);
+  swatches.sort((a, b) => {
+    if (a.hsl[0] !== b.hsl[0]) return a.hsl[0] - b.hsl[0];
+    if (a.hsl[2] !== b.hsl[2]) return a.hsl[2] - b.hsl[2];
+    return a.hsl[1] - b.hsl[1];
+  });
 
-    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-    const p = 2 * l - q;
-    const r = hue2rgb(p, q, h + 1 / 3);
-    const g = hue2rgb(p, q, h);
-    const b = hue2rgb(p, q, h - 1 / 3);
+  // // Create an image from the swatches
+  const composite = await sharpComposite(swatches);
+  const buffer = await composite.png().toBuffer();
+  const palette = await Vibrant.from(buffer).getPalette();
+  const final = await sharpComposite([
+    palette.Vibrant,
+    palette.Muted,
+    palette.DarkVibrant,
+    palette.DarkMuted,
+    palette.LightVibrant,
+    palette.LightMuted,
+  ].filter(s => s !== null));
 
-    return `#${Math.round(r * 255).toString(16).padStart(2, '0')}${Math.round(g * 255).toString(16).padStart(2, '0')}${Math.round(b * 255).toString(16).padStart(2, '0')}`;
+  // Optionally, write to file to review.
+  // await final
+  //   .png()
+  //   .toFile('swatch_palette.png');
+
+}, 20000);
+
+test("combine to one and gpt analyze", async () => {
+  const n = 4;
+  const searchTerm = "legend of zelda";
+  const urls = await scrapeBingImages(searchTerm, n);
+
+  const promises =
+    urls.map((url) => Bun.fetch(url)
+      .then(r => r.arrayBuffer())
+      .then(b => Buffer.from(b)).then(b => downsample(b, 300)));
+
+  const buffers =
+    await Promise.allSettled(promises)
+      .then(rs =>
+        rs.filter(r => r.status === "fulfilled")
+          .map(r => r.value)
+          .filter(r => r.ok)
+          .map(r => r.value));
+
+  // const stitched = await stitchHorizontallyAlpha(buffers).then(r => {
+  //   if (!r.ok) throw new Error(`${r.error}`);
+  //   return r.value;
+  // });
+
+  let css = await sendPaletteRequest(urls).then(r => {
+    if (!r.ok) throw new Error(`${JSON.stringify(r.error)}`);
+    return r.value;
+  });
+
+  Bun.write("./testcolors.json", JSON.stringify(css));
+
+  // await stitched.toFile("stitched.png");
+}, 20000);
+
+
+async function stitchHorizontallyAlpha(
+  buffers: Buffer[]
+): Promise<Result<sharp.Sharp>> {
+  if (buffers.length === 0) {
+    return err("No buffers to stitch.");
   }
 
-  getColor(variants: ColorVariant[]): string {
-    for (const variant of variants) {
-      if (this.colors[variant]?.hex) {
-        return this.colors[variant]!.hex;
-      }
+  try {
+    // Load all images and get their metadata
+    const images = await Promise.all(buffers.map(buf => sharp(buf).metadata()));
+
+    // Calculate total width and max height
+    const totalWidth = images.reduce((sum, img) => sum + (img.width || 0), 0);
+    const maxHeight = Math.max(...images.map(img => img.height || 0));
+
+    let base = sharp({
+      create: {
+        width: totalWidth,
+        height: maxHeight,
+        channels: 4,
+        background: { r: 0, g: 0, b: 0, alpha: 0 }, // Fully transparent
+      },
+    });
+
+    const compositeArray = [];
+    let currentLeft = 0;
+
+    // Build composite instructions without stretching
+    for (let i = 0; i < buffers.length; i++) {
+      compositeArray.push({
+        input: buffers[i],
+        left: currentLeft,
+        top: Math.floor((maxHeight - (images[i].height || 0)) / 2), // Center vertically
+      });
+      currentLeft += images[i].width || 0;
     }
-    return "#000000"; // Fallback color
+
+    // Composite them side by side
+    const stitched = base.composite(compositeArray).png();
+    return ok(stitched);
+  } catch (e: any) {
+    return err(`Stitching error: ${String(e)}`);
   }
 }
-
-// Color role definitions with proper typing
-interface ColorRoleMapping {
-  variants: ColorVariant[];
-}
-
-interface ColorRoles {
-  [key: string]: ColorRoleMapping;
-}
-
-const COLOR_ROLES: ColorRoles = {
-  primary: { variants: ["Vibrant", "Muted"] },
-  secondary: { variants: ["Vibrant", "Muted"] },
-  background: { variants: ["Muted", "Vibrant"] },
-  text: { variants: ["LightVibrant", "Vibrant"] },
-  page_bg: { variants: ["DarkMuted", "DarkVibrant"] },
-  user_message_bg: { variants: ["ReadableLight1", "LightMuted"] },
-  user_message_text: { variants: ["DarkVibrant", "DarkMuted"] },
-  assistant_message_bg: { variants: ["ReadableDark1", "LightVibrant"] },
-  assistant_message_text: { variants: ["LightMuted", "DarkMuted"] },
-  border: { variants: ["LightMuted", "Muted"] },
-  chat_bg: { variants: ["Muted", "DarkMuted"] },
-  header_bg: { variants: ["DarkVibrant", "Vibrant"] },
-  header_text_color: { variants: ["LightVibrant", "Vibrant"] },
-  send_button_bg: { variants: ["Vibrant", "LightVibrant"] },
-  send_button_color: { variants: ["LightVibrant", "Vibrant"] },
-  attachment_button_bg: { variants: ["Muted", "DarkMuted"] },
-  attachment_button_color: { variants: ["DarkMuted", "DarkVibrant"] },
-  info_button_color: { variants: ["Vibrant", "DarkVibrant"] },
-};
-
-// CSS variable mapping with proper typing
-type CssVariableName = keyof typeof CSS_COLOR_KEYS;
-type ColorRole = keyof typeof COLOR_ROLES;
-
-const CSS_COLOR_KEYS: Record<string, ColorRole> = {
-  primary_color: "primary",
-  secondary_color: "secondary",
-  background_color: "background",
-  text_color: "text",
-  page_bg: "page_bg",
-  user_message_background: "user_message_bg",
-  user_message_text_color: "user_message_text",
-  assistant_message_background: "assistant_message_bg",
-  assistant_message_text_color: "assistant_message_text",
-  border_color: "border",
-  chat_background: "chat_bg",
-  header_background: "header_bg",
-  header_text_color: "header_text_color",
-  send_button_bg: "send_button_bg",
-  send_button_color: "send_button_color",
-  attachment_button_bg: "attachment_button_bg",
-  attachment_button_color: "attachment_button_color",
-  info_button_color: "info_button_color",
-};
-
-// Function to select colors with proper typing
-const selectColor = (
-  customPalette: CustomPalette,
-  role: ColorRole
-): string => {
-  const variants = COLOR_ROLES[role].variants;
-  return customPalette.getColor(variants);
-};
-
-// Function to generate CSS variables
-const generateCSSVars = (
-  palette: CustomPalette
-): Record<string, string> => {
-  return Object.entries(CSS_COLOR_KEYS).reduce((acc, [cssVar, role]) => {
-    acc[cssVar] = selectColor(palette, role);
-    return acc;
-  }, {} as Record<string, string>);
-};
-
-// Exported helper to generate a palette from an image URL
-export const generatePaletteFromUrl = async (
-  imageUrl: string
-): Promise<Record<string, string>> => {
-  const vibrantPalette = await Vibrant.from(imageUrl).getPalette();
-  const customPalette = new CustomPalette(vibrantPalette);
-
-  return generateCSSVars(customPalette);
-};
-
-// Test implementation
-const testPaletteGeneration = async () => {
-  const url = "https://upload.wikimedia.org/wikipedia/commons/0/03/Trending_colors_2017.png";
-  const cssVars = await generatePaletteFromUrl(url);
-
-  Bun.write("./testcolors.json", JSON.stringify(cssVars));
-
-  // Test assertions
-  expect(cssVars).toMatchInlineSnapshot(`
-    {
-      "assistant_message_background": "#404c63",
-      "assistant_message_text_color": "#b4b470",
-      "attachment_button_bg": "#5484a4",
-      "attachment_button_color": "#2c3444",
-      "background_color": "#5484a4",
-      "border_color": "#b4b470",
-      "chat_background": "#5484a4",
-      "header_background": "#7c6308",
-      "header_text_color": "#f6de82",
-      "info_button_color": "#f4d45c",
-      "page_bg": "#2c3444",
-      "primary_color": "#f4d45c",
-      "secondary_color": "#f4d45c",
-      "send_button_bg": "#f4d45c",
-      "send_button_color": "#f6de82",
-      "text_color": "#f6de82",
-      "user_message_background": "#c6c691",
-      "user_message_text_color": "#7c6308",
-    }
-  `);
-};
-
-// For testing
-test("format color palette into CSS variables", testPaletteGeneration);
