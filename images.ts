@@ -294,7 +294,7 @@ export async function processChatMessageFlow(contents: ChatMessageContent[]): Pr
   return ok({
     ui_changes: css.value,
     imageUrls,
-    base64Images: base64Images.map(img => Buffer.from(img.split(",")[1], 'base64').length),
+    base64Images,
     stitchedImage: base64Image,
   });
 }
