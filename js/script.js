@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (hour >= 17 && hour < 22) return 'evening';
     return 'night';
   }
+}
 
   // Function to reset chat
   function resetChat() {
@@ -177,6 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
     styleElement.appendChild(document.createTextNode(css));
     document.head.appendChild(styleElement);
   }
+  async function processMessage() {
     const userMessage = messageInput.value.trim();
     if (!userMessage && !currentImage) return;
 
