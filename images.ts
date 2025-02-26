@@ -237,13 +237,17 @@ export async function processChatMessageFlow(contents: ChatMessageContent[]): Pr
       const urls = await scrapeBingImages(content.text, 4);
       imageUrls = imageUrls.concat(urls);
     } else if (content.type === "image_url") {
-      const urls = content.image_url.map(url => {
-        if (!url.url.startsWith("data:image/")) {
+      if (typeof content.image_url === "string") {
+        if (!content.image_url.startsWith("data:image/")) {
           return err("Expected base64 image URL");
         }
-        return url.url;
-      });
-      base64Images = base64Images.concat(urls);
+        base64Images.push(content.image_url);
+      } else {
+        if (!content.image_url.url.startsWith("data:image/")) {
+          return err("Expected base64 image URL");
+        }
+        base64Images.push(content.image_url.url);
+      }
     }
   }
 
