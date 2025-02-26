@@ -29,10 +29,11 @@ const server = Bun.serve({
           ...fontResult.vars
         };
 
+        // Ensure the response structure is correct
         return Response.json({
           type: "ui_update",
           content: "DONE!",
-          ui_changes: mergedUIChanges
+          ...mergedUIChanges
         });
       }
     }
