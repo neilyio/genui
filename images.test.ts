@@ -251,61 +251,6 @@ async function sharpComposite(swatches: { rgb: [number, number, number] }[]): Pr
     })));
 }
 
-test.skip("stitch color palettes from 10 URLs", async () => {
-  const n = 3;
-  const searchTerm = "black and white";
-  const urls = await scrapeBingImages(searchTerm, n);
-  const swatches = [];
-  for (const url of urls) {
-    try {
-      const resp = await Bun.fetch(url);
-      const arrayBuffer = await resp.arrayBuffer();
-
-      const palette = await Vibrant.from(Buffer.from(arrayBuffer)).getPalette();
-      const paletteSwatches = [
-        palette.Vibrant,
-        palette.Muted,
-        palette.DarkVibrant,
-        palette.DarkMuted,
-        palette.LightVibrant,
-        palette.LightMuted,
-      ];
-      // expect(`${hexs}`).toMatchInlineSnapshot(`"#f4d45c,#5484a4,#7c6308,#2c3444,#f6de82,#b4b470"`);
-      for (const swatch of paletteSwatches) {
-        if (swatch) swatches.push(swatch);
-      }
-    } catch (err) {
-      continue
-    }
-  }
-
-  removeLightnessOutlier(swatches, (s: any) => s.hsl[2], 1.2);
-  swatches.sort((a, b) => {
-    if (a.hsl[0] !== b.hsl[0]) return a.hsl[0] - b.hsl[0];
-    if (a.hsl[2] !== b.hsl[2]) return a.hsl[2] - b.hsl[2];
-    return a.hsl[1] - b.hsl[1];
-  });
-
-  // // Create an image from the swatches
-  const composite = await sharpComposite(swatches);
-  const buffer = await composite.png().toBuffer();
-  const palette = await Vibrant.from(buffer).getPalette();
-  const final = await sharpComposite([
-    palette.Vibrant,
-    palette.Muted,
-    palette.DarkVibrant,
-    palette.DarkMuted,
-    palette.LightVibrant,
-    palette.LightMuted,
-  ].filter(s => s !== null));
-
-  // Optionally, write to file to review.
-  // await final
-  //   .png()
-  //   .toFile('swatch_palette.png');
-
-}, 20000);
-
 // Define interfaces for the color palette
 interface ColorInfo {
   hex: string;
@@ -326,7 +271,7 @@ interface PaletteColors {
 }
 
 type ColorVariant = keyof PaletteColors;
-type ThemeMode = 'dark' | 'light';
+type ColorRole = keyof typeof COLOR_ROLES;
 
 // Refactored palette class with proper TypeScript types
 class CustomPalette {
@@ -410,8 +355,7 @@ class CustomPalette {
 
 // Color role definitions with proper typing
 interface ColorRoleMapping {
-  dark: ColorVariant[];
-  light: ColorVariant[];
+  variants: ColorVariant[];
 }
 
 interface ColorRoles {
@@ -419,24 +363,24 @@ interface ColorRoles {
 }
 
 const COLOR_ROLES: ColorRoles = {
-  primary: { dark: ["DarkMuted", "Muted"], light: ["LightVibrant", "Vibrant"] },
-  secondary: { dark: ["Vibrant", "DarkVibrant"], light: ["Muted", "LightMuted"] },
-  background: { dark: ["Muted", "Vibrant"], light: ["LightMuted", "LightVibrant"] },
-  text: { dark: ["LightVibrant", "Vibrant"], light: ["DarkVibrant", "DarkMuted"] },
-  page_bg: { dark: ["DarkMuted", "DarkVibrant"], light: ["LightVibrant", "LightMuted"] },
-  user_message_bg: { dark: ["ReadableDark1", "DarkMuted"], light: ["ReadableLight1", "LightMuted"] },
-  user_message_text: { dark: ["DarkVibrant", "DarkMuted"], light: ["LightVibrant", "Vibrant"] },
-  assistant_message_bg: { dark: ["ReadableDark1", "DarkMuted"], light: ["ReadableLight1", "LightVibrant"] },
-  assistant_message_text: { dark: ["LightMuted", "LightVibrant"], light: ["DarkMuted", "DarkVibrant"] },
-  border: { dark: ["LightMuted", "Muted"], light: ["LightMuted", "LightVibrant"] },
-  chat_bg: { dark: ["Muted", "DarkMuted"], light: ["LightMuted", "LightVibrant"] },
-  header_bg: { dark: ["DarkVibrant", "Vibrant"], light: ["LightVibrant", "LightMuted"] },
-  header_text: { dark: ["LightVibrant", "Vibrant"], light: ["DarkVibrant", "DarkMuted"] },
-  send_button_bg: { dark: ["Vibrant", "LightVibrant"], light: ["Muted", "LightMuted"] },
-  send_button_text: { dark: ["LightVibrant", "Vibrant"], light: ["DarkVibrant", "DarkMuted"] },
-  attachment_button_bg: { dark: ["Muted", "DarkMuted"], light: ["LightMuted", "LightVibrant"] },
-  attachment_button_text: { dark: ["DarkMuted", "DarkVibrant"], light: ["LightVibrant", "Vibrant"] },
-  info_button_color: { dark: ["Vibrant", "DarkVibrant"], light: ["Muted", "LightMuted"] },
+  primary: { variants: ["Vibrant", "Muted", "DarkVibrant"] },
+  secondary: { variants: ["Vibrant", "Muted", "DarkVibrant"] },
+  background: { variants: ["Muted", "Vibrant"] },
+  text: { variants: ["LightVibrant", "Vibrant"] },
+  page_bg: { variants: ["DarkMuted", "DarkVibrant"] },
+  user_message_bg: { variants: ["ReadableLight1", "ReadableLight2", "ReadableDark1", "ReadableDark2", "LightMuted"] },
+  user_message_text: { variants: ["DarkVibrant", "DarkMuted", "LightVibrant"] },
+  assistant_message_bg: { variants: ["ReadableDark1", "ReadableDark2", "LightVibrant"] },
+  assistant_message_text: { variants: ["LightMuted", "LightVibrant", "DarkMuted"] },
+  border: { variants: ["LightMuted", "Muted", "LightVibrant"] },
+  chat_bg: { variants: ["Muted", "DarkMuted", "LightVibrant"] },
+  header_bg: { variants: ["DarkVibrant", "Vibrant", "LightVibrant"] },
+  header_text_color: { variants: ["LightVibrant", "Vibrant", "DarkVibrant"] },
+  send_button_bg: { variants: ["Vibrant", "LightVibrant", "Muted"] },
+  send_button_color: { variants: ["LightVibrant", "Vibrant", "DarkVibrant"] },
+  attachment_button_bg: { variants: ["Muted", "DarkMuted", "LightVibrant"] },
+  attachment_button_color: { variants: ["DarkMuted", "DarkVibrant", "LightVibrant"] },
+  info_button_color: { variants: ["Vibrant", "DarkVibrant", "Muted", "LightMuted"] },
 };
 
 // CSS variable mapping with proper typing
@@ -456,31 +400,29 @@ const CSS_COLOR_KEYS: Record<string, ColorRole> = {
   border_color: "border",
   chat_background: "chat_bg",
   header_background: "header_bg",
-  header_text_color: "header_text",
+  header_text_color: "header_text_color",
   send_button_bg: "send_button_bg",
-  send_button_color: "send_button_text",
+  send_button_color: "send_button_color",
   attachment_button_bg: "attachment_button_bg",
-  attachment_button_color: "attachment_button_text",
+  attachment_button_color: "attachment_button_color",
   info_button_color: "info_button_color",
 };
 
 // Function to select colors with proper typing
 const selectColor = (
   customPalette: CustomPalette,
-  role: ColorRole,
-  mode: ThemeMode = "dark"
+  role: ColorRole
 ): string => {
-  const variants = COLOR_ROLES[role][mode];
+  const variants = COLOR_ROLES[role].variants;
   return customPalette.getColor(variants);
 };
 
 // Function to generate CSS variables
 const generateCSSVars = (
-  palette: CustomPalette,
-  mode: ThemeMode
+  palette: CustomPalette
 ): Record<string, string> => {
   return Object.entries(CSS_COLOR_KEYS).reduce((acc, [cssVar, role]) => {
-    acc[cssVar] = selectColor(palette, role, mode);
+    acc[cssVar] = selectColor(palette, role);
     return acc;
   }, {} as Record<string, string>);
 };
@@ -489,15 +431,13 @@ const generateCSSVars = (
 export const generatePaletteFromUrl = async (
   imageUrl: string
 ): Promise<{
-  darkMode: Record<string, string>;
-  lightMode: Record<string, string>;
+  cssVars: Record<string, string>;
 }> => {
   const vibrantPalette = await Vibrant.from(imageUrl).getPalette();
   const customPalette = new CustomPalette(vibrantPalette);
 
   return {
-    darkMode: generateCSSVars(customPalette, "dark"),
-    lightMode: generateCSSVars(customPalette, "light")
+    cssVars: generateCSSVars(customPalette),
   };
 };
 
@@ -534,4 +474,4 @@ const testPaletteGeneration = async () => {
 };
 
 // For testing
-test("format color palette into CSS variables with light/dark mode support", testPaletteGeneration);
+test("format color palette into CSS variables", testPaletteGeneration);
