@@ -69,11 +69,6 @@ function err(message: string): ResultErr {
   return { ok: false, error: message };
 }
 
-interface Swatch {
-  rgb: [number, number, number];
-  population: number;
-}
-
 async function fetchImageBuffer(url: string): Promise<Result<Buffer>> {
   try {
     const response = await Bun.fetch(url);
@@ -87,45 +82,6 @@ async function fetchImageBuffer(url: string): Promise<Result<Buffer>> {
   } catch (e: any) {
     return err(`Error fetching ${url}: ${String(e)}`);
   }
-}
-
-async function extractPalette(imageBuffer: Buffer): Promise<Result<Swatch[]>> {
-  try {
-    const vibrantPalette = await Vibrant.from(imageBuffer).getPalette();
-    // Transform Vibrant's object into an array of { rgb, population }
-    const swatches: Swatch[] = Object.values(vibrantPalette)
-      .filter((sw) => sw !== null)
-      .map((sw) => ({
-        rgb: sw!.rgb as [number, number, number],
-        population: sw!.population,
-      }));
-
-    if (swatches.length === 0) {
-      return err("No swatches found.");
-    }
-
-    return ok(swatches);
-  } catch (e: any) {
-    return err(`Error extracting palette: ${String(e)}`);
-  }
-}
-
-function hasColorOutliers(swatches: Swatch[]): boolean {
-  if (swatches.length === 0) {
-    return true;
-  }
-
-  // Example: brightness-based checks
-  const brightnesses = swatches.map(({ rgb: [r, g, b] }) => (r + g + b) / 3);
-  const minBrightness = Math.min(...brightnesses);
-  const maxBrightness = Math.max(...brightnesses);
-
-  // - If the range is too large, treat as outlier
-  // - If extremely dark or bright, treat as outlier
-  if (maxBrightness - minBrightness > 200) return true;
-  if (minBrightness < 10 || maxBrightness > 245) return true;
-
-  return false;
 }
 
 /**
@@ -236,48 +192,37 @@ async function stitchHorizontally(
   }
 }
 
-test("stitch color palettes from 10 URLs", async () => {
-  const n = 10;
-  const searchTerm = "giraffes";
-  const urls = await scrapeBingImages(searchTerm, n);
-  expect(urls.length).toBeGreaterThanOrEqual(1);
-
-  const finalImages: Buffer[] = [];
-
-  for (const url of urls) {
-    const fetchResult = await fetchImageBuffer(url);
-    if (!fetchResult.ok) continue;
-
-    const paletteResult = await extractPalette(fetchResult.value);
-    if (!paletteResult.ok) continue;
-
-    if (hasColorOutliers(paletteResult.value)) continue;
-
-    const downsampleResult = await downsample(fetchResult.value, 800);
-    if (!downsampleResult.ok) continue;
-
-    const stretchedResult = await stretchToSize(downsampleResult.value, 200, 200);
-    if (!stretchedResult.ok) continue;
-
-    finalImages.push(stretchedResult.value);
+export function removeLightnessOutlier(
+  dataset: any[],
+  getLightness: (d: any) => number,
+  threshold: number = 2 // Defaulting to 2 standard deviations for a reasonable detection
+): void {
+  if (dataset.length === 0) {
+    return; // Nothing to remove if dataset is empty
   }
 
-  if (finalImages.length === 0)
-    throw new Error("No valid images remained after outlier checks and resizing.");
+  // 1. Extract lightness values using the provided getLightness function
+  const lightnessValues = dataset.map(getLightness);
 
+  // 2. Compute the mean (average) of the lightness values
+  const mean = lightnessValues.reduce((sum, l) => sum + l, 0) / lightnessValues.length;
 
-  const stitchedResult = await stitchHorizontally(finalImages, 200, 200);
-  if (!stitchedResult.ok)
-    throw new Error(`Failed to stitch images: ${stitchedResult.error}`);
+  // 3. Compute variance and standard deviation
+  const variance = lightnessValues.reduce((acc, l) => acc + Math.pow(l - mean, 2), 0) / lightnessValues.length;
+  const stdDev = Math.sqrt(variance);
 
-  const finalPaletteResult = await extractPalette(stitchedResult.value);
-  if (!finalPaletteResult.ok)
-    throw new Error(`Could not extract palette from stitched image: ${finalPaletteResult.error}`);
+  // 4. Remove outliers in place (iterating from the end to avoid index shifts)
+  for (let i = dataset.length - 1; i >= 0; i--) {
+    const lightness = getLightness(dataset[i]);
+    const distance = Math.abs(lightness - mean);
 
-  const swatches = finalPaletteResult.value;
-  expect(swatches.length).toBeGreaterThan(0);
+    if (distance > threshold * stdDev) {
+      dataset.splice(i, 1); // Remove outlier
+    }
+  }
+}
 
-  // Create an image from the swatches
+async function sharpComposite(swatches: { rgb: [number, number, number] }[]): Promise<sharp.Sharp> {
   const swatchImages = swatches.map(({ rgb }) => {
     return sharp({
       create: {
@@ -291,7 +236,7 @@ test("stitch color palettes from 10 URLs", async () => {
 
   const swatchBuffers = await Promise.all(swatchImages);
 
-  const swatchStitched = await sharp({
+  return sharp({
     create: {
       width: 100 * swatchBuffers.length,
       height: 100,
@@ -303,9 +248,255 @@ test("stitch color palettes from 10 URLs", async () => {
       input: buffer,
       left: index * 100,
       top: 0,
-    })))
-    .png()
-    .toFile('swatch_palette.png');
+    })));
+}
 
-  console.log('Swatch palette image created:', swatchStitched);
+test.skip("stitch color palettes from 10 URLs", async () => {
+  const n = 3;
+  const searchTerm = "black and white";
+  const urls = await scrapeBingImages(searchTerm, n);
+  const swatches = [];
+  for (const url of urls) {
+    try {
+      const resp = await Bun.fetch(url);
+      const arrayBuffer = await resp.arrayBuffer();
+
+      const palette = await Vibrant.from(Buffer.from(arrayBuffer)).getPalette();
+      const paletteSwatches = [
+        palette.Vibrant,
+        palette.Muted,
+        palette.DarkVibrant,
+        palette.DarkMuted,
+        palette.LightVibrant,
+        palette.LightMuted,
+      ];
+      // expect(`${hexs}`).toMatchInlineSnapshot(`"#f4d45c,#5484a4,#7c6308,#2c3444,#f6de82,#b4b470"`);
+      for (const swatch of paletteSwatches) {
+        if (swatch) swatches.push(swatch);
+      }
+    } catch (err) {
+      continue
+    }
+  }
+
+  removeLightnessOutlier(swatches, (s: any) => s.hsl[2], 1.2);
+  swatches.sort((a, b) => {
+    if (a.hsl[0] !== b.hsl[0]) return a.hsl[0] - b.hsl[0];
+    if (a.hsl[2] !== b.hsl[2]) return a.hsl[2] - b.hsl[2];
+    return a.hsl[1] - b.hsl[1];
+  });
+
+  // // Create an image from the swatches
+  const composite = await sharpComposite(swatches);
+  const buffer = await composite.png().toBuffer();
+  const palette = await Vibrant.from(buffer).getPalette();
+  const final = await sharpComposite([
+    palette.Vibrant,
+    palette.Muted,
+    palette.DarkVibrant,
+    palette.DarkMuted,
+    palette.LightVibrant,
+    palette.LightMuted,
+  ].filter(s => s !== null));
+
+  // Optionally, write to file to review.
+  // await final
+  //   .png()
+  //   .toFile('swatch_palette.png');
+
 }, 20000);
+
+// Define interfaces for the color palette
+interface ColorInfo {
+  hex: string;
+  population: number;
+}
+
+interface PaletteColors {
+  Vibrant: ColorInfo | null;
+  Muted: ColorInfo | null;
+  DarkVibrant: ColorInfo | null;
+  DarkMuted: ColorInfo | null;
+  LightVibrant: ColorInfo | null;
+  LightMuted: ColorInfo | null;
+}
+
+type ColorVariant = keyof PaletteColors;
+type ThemeMode = 'dark' | 'light';
+
+// Refactored palette class with proper TypeScript types
+class CustomPalette {
+  private colors: Record<ColorVariant, ColorInfo | null>;
+
+  constructor(vibrantPalette: Record<string, any>) {
+    this.colors = {
+      Vibrant: vibrantPalette.Vibrant ? { hex: vibrantPalette.Vibrant.hex, population: vibrantPalette.Vibrant.population } : null,
+      Muted: vibrantPalette.Muted ? { hex: vibrantPalette.Muted.hex, population: vibrantPalette.Muted.population } : null,
+      DarkVibrant: vibrantPalette.DarkVibrant ? { hex: vibrantPalette.DarkVibrant.hex, population: vibrantPalette.DarkVibrant.population } : null,
+      DarkMuted: vibrantPalette.DarkMuted ? { hex: vibrantPalette.DarkMuted.hex, population: vibrantPalette.DarkMuted.population } : null,
+      LightVibrant: vibrantPalette.LightVibrant ? { hex: vibrantPalette.LightVibrant.hex, population: vibrantPalette.LightVibrant.population } : null,
+      LightMuted: vibrantPalette.LightMuted ? { hex: vibrantPalette.LightMuted.hex, population: vibrantPalette.LightMuted.population } : null,
+    };
+  }
+
+  getColor(variants: ColorVariant[]): string {
+    for (const variant of variants) {
+      if (this.colors[variant]?.hex) {
+        return this.colors[variant]!.hex;
+      }
+    }
+    return "#000000"; // Fallback color
+  }
+}
+
+// Color role definitions with proper typing
+interface ColorRoleMapping {
+  dark: ColorVariant[];
+  light: ColorVariant[];
+}
+
+interface ColorRoles {
+  [key: string]: ColorRoleMapping;
+}
+
+const COLOR_ROLES: ColorRoles = {
+  primary: { dark: ["DarkMuted", "Muted"], light: ["LightVibrant", "Vibrant"] },
+  secondary: { dark: ["Vibrant", "DarkVibrant"], light: ["Muted", "LightMuted"] },
+  background: { dark: ["Muted", "Vibrant"], light: ["LightMuted", "LightVibrant"] },
+  text: { dark: ["LightVibrant", "Vibrant"], light: ["DarkVibrant", "DarkMuted"] },
+  page_bg: { dark: ["DarkMuted", "DarkVibrant"], light: ["LightVibrant", "LightMuted"] },
+  user_message_bg: { dark: ["LightMuted", "LightVibrant"], light: ["Muted", "LightMuted"] },
+  user_message_text: { dark: ["DarkVibrant", "DarkMuted"], light: ["LightVibrant", "Vibrant"] },
+  assistant_message_bg: { dark: ["Vibrant", "DarkMuted"], light: ["LightMuted", "LightVibrant"] },
+  assistant_message_text: { dark: ["LightMuted", "LightVibrant"], light: ["DarkMuted", "DarkVibrant"] },
+  border: { dark: ["LightMuted", "Muted"], light: ["LightMuted", "LightVibrant"] },
+  chat_bg: { dark: ["Muted", "DarkMuted"], light: ["LightMuted", "LightVibrant"] },
+  header_bg: { dark: ["DarkVibrant", "Vibrant"], light: ["LightVibrant", "LightMuted"] },
+  header_text: { dark: ["LightVibrant", "Vibrant"], light: ["DarkVibrant", "DarkMuted"] },
+  send_button_bg: { dark: ["Vibrant", "LightVibrant"], light: ["Muted", "LightMuted"] },
+  send_button_text: { dark: ["LightVibrant", "Vibrant"], light: ["DarkVibrant", "DarkMuted"] },
+  attachment_button_bg: { dark: ["Muted", "DarkMuted"], light: ["LightMuted", "LightVibrant"] },
+  attachment_button_text: { dark: ["DarkMuted", "DarkVibrant"], light: ["LightVibrant", "Vibrant"] },
+  info_button_color: { dark: ["Vibrant", "DarkVibrant"], light: ["Muted", "LightMuted"] },
+};
+
+// CSS variable mapping with proper typing
+type CssVariableName = keyof typeof CSS_COLOR_KEYS;
+type ColorRole = keyof typeof COLOR_ROLES;
+
+const CSS_COLOR_KEYS: Record<string, ColorRole> = {
+  primary_color: "primary",
+  secondary_color: "secondary",
+  background_color: "background",
+  text_color: "text",
+  page_bg: "page_bg",
+  user_message_background: "user_message_bg",
+  user_message_text_color: "user_message_text",
+  assistant_message_background: "assistant_message_bg",
+  assistant_message_text_color: "assistant_message_text",
+  border_color: "border",
+  chat_background: "chat_bg",
+  header_background: "header_bg",
+  header_text_color: "header_text",
+  send_button_bg: "send_button_bg",
+  send_button_color: "send_button_text",
+  attachment_button_bg: "attachment_button_bg",
+  attachment_button_color: "attachment_button_text",
+  info_button_color: "info_button_color",
+};
+
+// Function to select colors with proper typing
+const selectColor = (
+  customPalette: CustomPalette,
+  role: ColorRole,
+  mode: ThemeMode = "dark"
+): string => {
+  const variants = COLOR_ROLES[role][mode];
+  return customPalette.getColor(variants);
+};
+
+// Function to generate CSS variables
+const generateCSSVars = (
+  palette: CustomPalette,
+  mode: ThemeMode
+): Record<string, string> => {
+  return Object.entries(CSS_COLOR_KEYS).reduce((acc, [cssVar, role]) => {
+    acc[cssVar] = selectColor(palette, role, mode);
+    console.log(cssVar, selectColor(palette, role, mode));
+    return acc;
+  }, {} as Record<string, string>);
+};
+
+// Exported helper to generate a palette from an image URL
+export const generatePaletteFromUrl = async (
+  imageUrl: string
+): Promise<{
+  darkMode: Record<string, string>;
+  lightMode: Record<string, string>;
+}> => {
+  const vibrantPalette = await Vibrant.from(imageUrl).getPalette();
+  const customPalette = new CustomPalette(vibrantPalette);
+
+  return {
+    darkMode: generateCSSVars(customPalette, "dark"),
+    lightMode: generateCSSVars(customPalette, "light")
+  };
+};
+
+// Test implementation
+const testPaletteGeneration = async () => {
+  const url = "https://upload.wikimedia.org/wikipedia/commons/0/03/Trending_colors_2017.png";
+  const { darkMode, lightMode } = await generatePaletteFromUrl(url);
+
+  Bun.write("./testcolors.json", JSON.stringify(darkMode));
+
+  // Test assertions
+  expect(darkMode).toMatchInlineSnapshot(`
+    {
+      "assistant_message_background": "#f4d45c",
+      "assistant_message_text_color": "#b4b470",
+      "attachment_button_bg": "#5484a4",
+      "attachment_button_color": "#2c3444",
+      "background_color": "#5484a4",
+      "border_color": "#b4b470",
+      "chat_background": "#5484a4",
+      "header_background": "#7c6308",
+      "header_text_color": "#f6de82",
+      "info_button_color": "#f4d45c",
+      "page_bg": "#2c3444",
+      "primary_color": "#2c3444",
+      "secondary_color": "#f4d45c",
+      "send_button_bg": "#f4d45c",
+      "send_button_color": "#f6de82",
+      "text_color": "#f6de82",
+      "user_message_background": "#b4b470",
+      "user_message_text_color": "#7c6308",
+    }
+  `);
+
+  expect(lightMode).toMatchInlineSnapshot(`
+    {
+      "assistant_message_background": "#b4b470",
+      "assistant_message_text_color": "#2c3444",
+      "attachment_button_bg": "#b4b470",
+      "attachment_button_color": "#f6de82",
+      "background_color": "#b4b470",
+      "border_color": "#b4b470",
+      "chat_background": "#b4b470",
+      "header_background": "#f6de82",
+      "header_text_color": "#7c6308",
+      "info_button_color": "#5484a4",
+      "page_bg": "#f6de82",
+      "primary_color": "#f6de82",
+      "secondary_color": "#5484a4",
+      "send_button_bg": "#5484a4",
+      "send_button_color": "#7c6308",
+      "text_color": "#7c6308",
+      "user_message_background": "#5484a4",
+      "user_message_text_color": "#f6de82",
+    }
+  `);
+};
+
+// For testing
+test("format color palette into CSS variables with light/dark mode support", testPaletteGeneration);
