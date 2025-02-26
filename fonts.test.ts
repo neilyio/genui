@@ -128,7 +128,7 @@ export async function fetchGoogleFontCSS(
 async function fetchFallbackCSS(
   fallbackFontName: string,
   options: FontOptions
-): Promise<Result<string, FontError>> {
+): Promise<FontResult<string>> {
   const fallbackUrl = buildGoogleFontsUrl(fallbackFontName, options);
 
   let response: Response;
@@ -145,7 +145,7 @@ async function fetchFallbackCSS(
 
   const css = await response.text();
   if (!css || !css.includes("font-family")) {
-    return { ok: false, error: FontError.FallbackFailed };
+    return { ok: false, error: { type: "FallbackFailed" } };
   }
 
   return { ok: true, value: css };
@@ -190,7 +190,7 @@ describe("Google Font Fetching", () => {
     // In a real network-enabled test, this would make a real fetch.
     // Here, let's see the immediate shape of the result object.
     // (You would mock fetch in a real unit test.)
-    let result: Result<string, FontError>;
+    let result: FontResult<string>;
 
     try {
       // This can cause network I/O in a real environment.
@@ -206,7 +206,16 @@ describe("Google Font Fetching", () => {
     expect(result).toMatchInlineSnapshot(`
 {
   "ok": true,
-  "value": expect.stringContaining("@font-face"),
+  "value": 
+"@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-stretch: normal;
+  src: url(https://fonts.gstatic.com/s/opensans/v40/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsg-1x4gaVc.ttf) format('truetype');
+}
+"
+,
 }
 `);
   });
