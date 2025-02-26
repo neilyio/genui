@@ -3,7 +3,8 @@ import mario from "./responses/test.json";
 import { sendPaletteRequest } from "./all.ts";
 import { parseChatMessages } from "./chat.ts";
 import testcolors from "./testcolors.json";
-import { fetchToBase64, scrapeBingImages } from "./images.ts";
+import { fetchToBase64, processChatMessageFlow, scrapeBingImages } from "./images.ts";
+import { executeFontFlow } from "./fonts.ts";
 
 const server = Bun.serve({
   routes: {
@@ -14,19 +15,6 @@ const server = Bun.serve({
         if (!messages.ok) throw new Error(JSON.stringify(messages.error));
 
         const latest = messages.value[messages.value.length - 1];
-        // let text = [];
-        // let urls = [];
-        // for (const content of latest.content) {
-        //   if (content.type === "text") {
-        //     text.push(content.text);
-        //   } else {
-        //     let url = typeof content.image_url === 'string'
-        //       ? content.image_url
-        //       : content.image_url.url;
-
-        //     urls.push(fetchToBase64(url))
-        //   }
-        // }
 
         const [imageResult, fontResult] = await Promise.all([
           processChatMessageFlow(latest.content),
@@ -38,7 +26,7 @@ const server = Bun.serve({
 
         const mergedUIChanges = {
           ...imageResult.value.ui_changes,
-          ...fontResult.css
+          ...fontResult.vars
         };
 
         return Response.json({
