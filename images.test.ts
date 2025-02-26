@@ -1,5 +1,5 @@
 import { test, expect } from "bun:test";
-import { downsample, scrapeBingImages } from "./images";
+import { downsample, scrapeBingImages, stitchHorizontallyAlpha } from "./images";
 import sharp from 'sharp';
 import { Vibrant } from "node-vibrant/node";
 import { sendPaletteRequest } from "./all";
@@ -86,17 +86,6 @@ async function fetchImageBuffer(url: string): Promise<Result<Buffer>> {
   }
 }
 
-/**
- * 6) Minor downsampling step to limit max dimensions
- *    This helps avoid huge images in memory. We'll maintain aspect ratio here.
- *    If you want to force cropping or squashing, see the next function.
- */
-
-
-/**
- * 7) Force a specific width/height by squashing or stretching
- *    using fit: 'fill'. This ignores aspect ratio.
- */
 async function stretchToSize(
   buffer: Buffer,
   width: number,
@@ -109,54 +98,6 @@ async function stretchToSize(
     return ok(resized);
   } catch (e: any) {
     return err(`Stretch error: ${String(e)}`);
-  }
-}
-
-/**
- * 8) Stitch images horizontally at a fixed size
- *    This expects all buffers to have the same width/height already.
- *    If they differ, you can unify them here or do it beforehand.
- */
-async function stitchHorizontally(
-  buffers: Buffer[],
-  eachWidth: number,
-  eachHeight: number
-): Promise<Result<Buffer>> {
-  if (buffers.length === 0) {
-    return err("No buffers to stitch.");
-  }
-
-  try {
-    // Create a blank "canvas" with totalWidth = eachWidth * #images
-    const totalWidth = eachWidth * buffers.length;
-
-    let base = sharp({
-      create: {
-        width: totalWidth,
-        height: eachHeight,
-        channels: 4,
-        background: { r: 255, g: 255, b: 255, alpha: 1 },
-      },
-    });
-
-    const compositeArray = [];
-    let currentLeft = 0;
-
-    // Build composite instructions
-    for (const buf of buffers) {
-      compositeArray.push({
-        input: buf,
-        left: currentLeft,
-        top: 0,
-      });
-      currentLeft += eachWidth;
-    }
-
-    // Composite them side by side
-    const stitched = await base.composite(compositeArray).png().toBuffer();
-    return ok(stitched);
-  } catch (e: any) {
-    return err(`Stitching error: ${String(e)}`);
   }
 }
 
@@ -340,49 +281,3 @@ test("combine to one and gpt analyze", async () => {
     }
   `);
 }, 30000);
-
-
-async function stitchHorizontallyAlpha(
-  buffers: Buffer[]
-): Promise<Result<sharp.Sharp>> {
-  if (buffers.length === 0) {
-    return err("No buffers to stitch.");
-  }
-
-  try {
-    // Load all images and get their metadata
-    const images = await Promise.all(buffers.map(buf => sharp(buf).metadata()));
-
-    // Calculate total width and max height
-    const totalWidth = images.reduce((sum, img) => sum + (img.width || 0), 0);
-    const maxHeight = Math.max(...images.map(img => img.height || 0));
-
-    let base = sharp({
-      create: {
-        width: totalWidth,
-        height: maxHeight,
-        channels: 4,
-        background: { r: 0, g: 0, b: 0, alpha: 0 }, // Fully transparent
-      },
-    });
-
-    const compositeArray = [];
-    let currentLeft = 0;
-
-    // Build composite instructions without stretching
-    for (let i = 0; i < buffers.length; i++) {
-      compositeArray.push({
-        input: buffers[i],
-        left: currentLeft,
-        top: Math.floor((maxHeight - (images[i].height || 0)) / 2), // Center vertically
-      });
-      currentLeft += images[i].width || 0;
-    }
-
-    // Composite them side by side
-    const stitched = base.composite(compositeArray).png();
-    return ok(stitched);
-  } catch (e: any) {
-    return err(`Stitching error: ${String(e)}`);
-  }
-}
