@@ -293,11 +293,18 @@ test("color processing flow", async () => {
     throw new Error(`Flow processing failed: ${result.error}`);
   }
 
+  expect(result.value.imageUrls).toMatchInlineSnapshot(`
+    Array [
+      "https://images.pexels.com/photos/1619507/pexels-photo-1619507.jpeg?cs=srgb&dl=animal-animal-photography-giraffe-1619507.jpg&fm=jpg",
+      "https://images.pexels.com/photos/730185/pexels-photo-730185.jpg?cs=srgb&dl=giraffe-730185.jpg&fm=jpg",
+    ]
+  `);
+
   expect(result.value.base64Images).toMatchInlineSnapshot(`
     Array [
-      "data:image/jpeg;base64,...",
-      "data:image/jpeg;base64,...",
-      // Add more base64 strings as needed
+      123456, // Example size in bytes
+      789012, // Example size in bytes
+      // Add more sizes as needed
     ]
   `);
 

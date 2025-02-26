@@ -232,6 +232,7 @@ type ProcessChatMessageFlowResult = {
   ui_changes: any;
   base64Images: string[];
   stitchedImage: string;
+  imageUrls: string[];
 };
 
 export async function processChatMessageFlow(contents: ChatMessageContent[]): Promise<Result<ProcessChatMessageFlowResult>> {
@@ -292,7 +293,8 @@ export async function processChatMessageFlow(contents: ChatMessageContent[]): Pr
 
   return ok({
     ui_changes: css.value,
-    base64Images,
+    imageUrls,
+    base64Images: base64Images.map(img => Buffer.from(img.split(",")[1], 'base64').length),
     stitchedImage: base64Image,
   });
 }
