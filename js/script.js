@@ -172,7 +172,12 @@ document.addEventListener('DOMContentLoaded', () => {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
   }
 
-  async function processMessage() {
+  function insertFontCSS(css) {
+    const styleElement = document.createElement('style');
+    styleElement.type = 'text/css';
+    styleElement.appendChild(document.createTextNode(css));
+    document.head.appendChild(styleElement);
+  }
     const userMessage = messageInput.value.trim();
     if (!userMessage && !currentImage) return;
 
