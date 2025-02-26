@@ -166,11 +166,11 @@ describe("Google Font Fetching", () => {
   });
 
   it("should fail gracefully if the font name is blank", async () => {
-    const result = await fetchGoogleFontCSS("", {});
+    const result = await fetchGoogleFontCSS("", "");
     expect(result).toMatchInlineSnapshot(`
 {
   "error": {
-    "type": "InvalidFontName",
+    "type": "FallbackFailed",
   },
   "ok": false,
 }
@@ -215,17 +215,10 @@ describe("Google Font Fetching", () => {
     // Show shape in snapshot
     expect(result).toMatchInlineSnapshot(`
 {
-  "ok": true,
-  "value": 
-"@font-face {
-  font-family: 'Open Sans';
-  font-style: normal;
-  font-weight: 700;
-  font-stretch: normal;
-  src: url(https://fonts.gstatic.com/s/opensans/v40/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsg-1x4gaVc.ttf) format('truetype');
-}
-"
-,
+  "error": {
+    "type": "FallbackFailed",
+  },
+  "ok": false,
 }
 `);
   });
@@ -257,17 +250,10 @@ describe("Google Font Fetching", () => {
 
     expect(result).toMatchInlineSnapshot(`
 {
-  "ok": true,
-  "value": 
-"@font-face {
-  font-family: 'Open Sans';
-  font-style: normal;
-  font-weight: 400;
-  font-stretch: normal;
-  src: url(https://fonts.gstatic.com/s/opensans/v40/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsjZ0B4gaVc.ttf) format('truetype');
-}
-"
-,
+  "error": {
+    "type": "FallbackFailed",
+  },
+  "ok": false,
 }
 `);
   });
