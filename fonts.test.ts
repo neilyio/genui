@@ -243,12 +243,21 @@ describe("Google Font Fetching", () => {
       weights: ["wght@100..900"],
     };
 
-    const result = await fetchGoogleFontCSS("Khula", options);
+    const result = await fetchGoogleFontCSS("Open Sans", options);
 
     expect(result).toMatchInlineSnapshot(`
 {
   "ok": true,
-  "value": expect.stringContaining("@font-face"),
+  "value": 
+"@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-stretch: normal;
+  src: url(https://fonts.gstatic.com/s/opensans/v40/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsjZ0B4gaVc.ttf) format('truetype');
+}
+"
+,
 }
 `);
   });
