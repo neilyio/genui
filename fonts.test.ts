@@ -166,7 +166,9 @@ describe("Google Font Fetching", () => {
   });
 
   it("should fail gracefully if the font name is blank", async () => {
-    const result = await fetchGoogleFontCSS("", "");
+    const primaryUrl = buildGoogleFontsUrl("", {});
+    const fallbackUrl = buildGoogleFontsUrl("Roboto", {});
+    const result = await fetchGoogleFontCSS(primaryUrl, fallbackUrl);
     expect(result).toMatchInlineSnapshot(`
 {
   "error": {
@@ -200,17 +202,9 @@ describe("Google Font Fetching", () => {
     // In a real network-enabled test, this would make a real fetch.
     // Here, let's see the immediate shape of the result object.
     // (You would mock fetch in a real unit test.)
-    let result: FontResult<string>;
-
-    try {
-      // This can cause network I/O in a real environment.
-      // In CI or offline test, you'd typically mock `fetch`.
-      result = await fetchGoogleFontCSS("Open Sans", options);
-    } catch (e) {
-      // If you're offline or if fetch isn't available, we'll simulate
-      // the fallback by returning manually.
-      result = { ok: false, error: { type: "RequestFailed" } };
-    }
+    const primaryUrl = buildGoogleFontsUrl("Open Sans", options);
+    const fallbackUrl = buildGoogleFontsUrl("Roboto", options);
+    const result = await fetchGoogleFontCSS(primaryUrl, fallbackUrl);
 
     // Show shape in snapshot
     expect(result).toMatchInlineSnapshot(`
@@ -227,9 +221,13 @@ describe("Google Font Fetching", () => {
     // Force it to fail by providing a nonsense domain or parameters
     // so we can see fallback come into play. If fetch truly fails,
     // we should see a FallbackFailed or we see fallback success if Roboto is fetched.
-    const result = await fetchGoogleFontCSS("ImaginaryFontNameThatDoesNotExist", {
+    const primaryUrl = buildGoogleFontsUrl("ImaginaryFontNameThatDoesNotExist", {
       weights: [9999],
     });
+    const fallbackUrl = buildGoogleFontsUrl("Roboto", {
+      weights: [9999],
+    });
+    const result = await fetchGoogleFontCSS(primaryUrl, fallbackUrl);
 
     expect(result).toMatchInlineSnapshot(`
 {
@@ -246,7 +244,9 @@ describe("Google Font Fetching", () => {
       weights: ["wght@100..900"],
     };
 
-    const result = await fetchGoogleFontCSS("Open Sans", options);
+    const primaryUrl = buildGoogleFontsUrl("Open Sans", options);
+    const fallbackUrl = buildGoogleFontsUrl("Roboto", options);
+    const result = await fetchGoogleFontCSS(primaryUrl, fallbackUrl);
 
     expect(result).toMatchInlineSnapshot(`
 {
