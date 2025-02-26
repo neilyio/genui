@@ -296,7 +296,7 @@ test("combine to one and gpt analyze", async () => {
     );
 
   const stitchedResult = await stitchHorizontallyAlpha(buffers);
-  if (!stitchedResult.ok) throw new Error(`${stitchedResult.error}`);
+  if (!stitchedResult.ok) throw stitchedResult.error;
 
   const stitchedBuffer = await stitchedResult.value.toBuffer();
   const base64Image = `data:image/png;base64,${stitchedBuffer.toString("base64")}`;
@@ -310,7 +310,34 @@ test("combine to one and gpt analyze", async () => {
     return r.value;
   });
 
-  Bun.write("./testcolors.json", JSON.stringify(css.ui_changes));
+  expect(css).toMatchInlineSnapshot(`
+    {
+      "ui_changes": {
+        "assistant_message_background": "#F2F2F2",
+        "assistant_message_border_color": "#B0B0B0",
+        "assistant_message_text_color": "#1A1A1A",
+        "attachment_button_bg": "#1A4D9B",
+        "attachment_button_color": "#FFFFFF",
+        "background_color": "#F2F2F2",
+        "border_color": "#CCCCCC",
+        "button_icon_color": "#FFFFFF",
+        "chat_background": "#F9F9F9",
+        "header_background": "#1A4D9B",
+        "header_text_color": "#FFFFFF",
+        "info_button_color": "#1A4D9B",
+        "input_background": "#E6E6E6",
+        "page_bg": "#FFFFFF",
+        "primary_color": "#1A4D9B",
+        "secondary_color": "#C72C3B",
+        "send_button_bg": "#C72C3B",
+        "send_button_color": "#FFFFFF",
+        "text_color": "#1A1A1A",
+        "user_message_background": "#C72C3B",
+        "user_message_border_color": "#A52A2A",
+        "user_message_text_color": "#FFFFFF",
+      },
+    }
+  `);
 }, 30000);
 
 
