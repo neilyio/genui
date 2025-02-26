@@ -100,7 +100,7 @@ export async function fetchGoogleFontCSS(
   // Try to fetch from the primary URL
   let response: Response;
   try {
-    response = await fetch(primaryUrl);
+    response = await Bun.fetch(primaryUrl);
   } catch (err) {
     // If fetch threw, let's skip directly to fallback
     return await fetchFallbackCSS(fallbackFontName, options);
@@ -133,7 +133,7 @@ async function fetchFallbackCSS(
 
   let response: Response;
   try {
-    response = await fetch(fallbackUrl);
+    response = await Bun.fetch(fallbackUrl);
   } catch (err) {
     // Fallback fetch also failed entirely
     return { ok: false, error: { type: "FallbackFailed" } };
