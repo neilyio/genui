@@ -151,6 +151,7 @@ body {
     color: var(--header-background);
     padding: 6px 12px;
     border-radius: var(--global-border-radius);
+    font-family: var(--placeholder-font-family);
     font-size: 14px;
     cursor: pointer;
     display: flex;
