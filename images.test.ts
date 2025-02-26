@@ -67,6 +67,10 @@ function ok<T>(value: T): ResultOk<T> {
   ReadableLight2: ColorInfo | null;
   ReadableDark1: ColorInfo | null;
   ReadableDark2: ColorInfo | null;
+  ReadableLight1: ColorInfo | null;
+  ReadableLight2: ColorInfo | null;
+  ReadableDark1: ColorInfo | null;
+  ReadableDark2: ColorInfo | null;
 }
 
 function err(message: string): ResultErr {
