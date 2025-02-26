@@ -171,7 +171,12 @@ document.addEventListener('DOMContentLoaded', () => {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
   }
 
-  async function processMessage() {
+  function insertFontCSS(css) {
+    const styleElement = document.createElement('style');
+    styleElement.type = 'text/css';
+    styleElement.appendChild(document.createTextNode(css));
+    document.head.appendChild(styleElement);
+  }
     const userMessage = messageInput.value.trim();
     if (!userMessage && !currentImage) return;
 
@@ -246,6 +251,9 @@ document.addEventListener('DOMContentLoaded', () => {
         appendMessage('assistant', data.content);
       } else if (data.type === "ui_update") {
         await hideTypingIndicator(); // Hide before theme update
+        if (data.css) {
+          insertFontCSS(data.css);
+        }
         updateTheme(data.ui_changes);
         appendMessage('assistant', data.content);
       } else if (data.type === "vision_response") {
