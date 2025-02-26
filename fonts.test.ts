@@ -44,8 +44,8 @@ export function buildGoogleFontsUrl(
     const weightParam = options.weights ? `wght@${options.weights.join(";")}` : "";
     const axesParam = options.axes
       ? Object.entries(options.axes)
-          .map(([key, value]) => `${key},${value}`)
-          .join(";")
+        .map(([key, value]) => `${key},${value}`)
+        .join(";")
       : "";
 
     const params = [weightParam, axesParam].filter(Boolean).join(";");
