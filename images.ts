@@ -5,6 +5,8 @@
  */
 import { JSDOM } from 'jsdom';
 import sharp from 'sharp';
+import { sendPaletteRequest } from "./all";
+import type { ChatMessageContent } from "./chat";
 
 export type ImageError =
   | { type: string; }
@@ -103,7 +105,169 @@ export async function downsample(
   }
 }
 
-// Example usage:
+type ResultOk<T> = { ok: true; value: T };
+type ResultErr = { ok: false; error: string };
+type Result<T> = ResultOk<T> | ResultErr;
+
+function ok<T>(value: T): ResultOk<T> {
+  return { ok: true, value };
+}
+
+function err(message: string): ResultErr {
+  return { ok: false, error: message };
+}
+
+async function fetchImageBuffer(url: string): Promise<Result<Buffer>> {
+  try {
+    const response = await Bun.fetch(url);
+    if (!response.ok) {
+      return err(`Fetch failed for ${url}, status: ${response.status}`);
+    }
+
+    const arrayBuf = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuf);
+    return ok(buffer);
+  } catch (e: any) {
+    return err(`Error fetching ${url}: ${String(e)}`);
+  }
+}
+
+async function stretchToSize(
+  buffer: Buffer,
+  width: number,
+  height: number
+): Promise<Result<Buffer>> {
+  try {
+    const resized = await sharp(buffer)
+      .resize(width, height, { fit: "fill" })
+      .toBuffer();
+    return ok(resized);
+  } catch (e: any) {
+    return err(`Stretch error: ${String(e)}`);
+  }
+}
+
+async function stitchHorizontally(
+  buffers: Buffer[],
+  eachWidth: number,
+  eachHeight: number
+): Promise<Result<Buffer>> {
+  if (buffers.length === 0) {
+    return err("No buffers to stitch.");
+  }
+
+  try {
+    const totalWidth = eachWidth * buffers.length;
+
+    let base = sharp({
+      create: {
+        width: totalWidth,
+        height: eachHeight,
+        channels: 4,
+        background: { r: 255, g: 255, b: 255, alpha: 1 },
+      },
+    });
+
+    const compositeArray = [];
+    let currentLeft = 0;
+
+    for (const buf of buffers) {
+      compositeArray.push({
+        input: buf,
+        left: currentLeft,
+        top: 0,
+      });
+      currentLeft += eachWidth;
+    }
+
+    const stitched = await base.composite(compositeArray).png().toBuffer();
+    return ok(stitched);
+  } catch (e: any) {
+    return err(`Stitching error: ${String(e)}`);
+  }
+}
+
+async function stitchHorizontallyAlpha(
+  buffers: Buffer[]
+): Promise<Result<sharp.Sharp>> {
+  if (buffers.length === 0) {
+    return err("No buffers to stitch.");
+  }
+
+  try {
+    const images = await Promise.all(buffers.map(buf => sharp(buf).metadata()));
+
+    const totalWidth = images.reduce((sum, img) => sum + (img.width || 0), 0);
+    const maxHeight = Math.max(...images.map(img => img.height || 0));
+
+    let base = sharp({
+      create: {
+        width: totalWidth,
+        height: maxHeight,
+        channels: 4,
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
+      },
+    });
+
+    const compositeArray = [];
+    let currentLeft = 0;
+
+    for (let i = 0; i < buffers.length; i++) {
+      compositeArray.push({
+        input: buffers[i],
+        left: currentLeft,
+        top: Math.floor((maxHeight - (images[i].height || 0)) / 2),
+      });
+      currentLeft += images[i].width || 0;
+    }
+
+    const stitched = base.composite(compositeArray).png();
+    return ok(stitched);
+  } catch (e: any) {
+    return err(`Stitching error: ${String(e)}`);
+  }
+}
+
+export async function processChatMessageFlow(message: ChatMessageContent): Promise<any> {
+  let imageUrls: string[] = [];
+
+  if (message.type === "text") {
+    imageUrls = await scrapeBingImages(message.text, 4);
+  } else if (message.type === "image_url") {
+    imageUrls = message.image_urls.map(url => url.url);
+  }
+
+  const promises = imageUrls.map((url) =>
+    Bun.fetch(url)
+      .then((r) => r.arrayBuffer())
+      .then((b) => Buffer.from(b))
+      .then((b) => downsample(b, 300))
+  );
+
+  const buffers = await Promise.allSettled(promises)
+    .then((rs) =>
+      rs
+        .filter((r) => r.status === "fulfilled")
+        .map((r) => r.value)
+        .filter((r) => r.ok)
+        .map((r) => r.value)
+    );
+
+  const stitchedResult = await stitchHorizontallyAlpha(buffers);
+  if (!stitchedResult.ok) throw stitchedResult.error;
+
+  const stitchedBuffer = await stitchedResult.value.toBuffer();
+  const base64Image = `data:image/png;base64,${stitchedBuffer.toString("base64")}`;
+
+  const urls: ChatMessageContent[] = [
+    { type: "image_url", image_url: { url: base64Image, detail: "low" } },
+  ];
+
+  const css = await sendPaletteRequest(urls);
+  if (!css.ok) throw new Error(`${JSON.stringify(css.error)}`);
+
+  return css.value;
+}
 // (async () => {
 //   const searchTerm = 'cute puppies'; // Change this query as needed
 //   const results = await scrapeBingImages(searchTerm, 10);
