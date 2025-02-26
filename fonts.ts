@@ -257,7 +257,7 @@ function chatPayload({
  * Sends a request to the chat model to determine a font name based on a string prompt.
  * 
  * @param prompt - The user prompt for which a font name is desired.
- * @returns {Promise<ChatResult<string>>} - A promise resolving to the font name.
+ * @returns {Promise<ChatResult<{ primary_font_name: string, fallback_font_name: string }>>} - A promise resolving to the font names.
  */
 export async function sendFontNameRequest(
   prompt: string

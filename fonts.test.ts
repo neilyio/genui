@@ -20,9 +20,16 @@ describe("Google Font Fetching", () => {
       if (!result.ok) throw result.error;
       expect(result.value).toMatchInlineSnapshot(`
         {
-          "font_name": "Orbitron",
+          "primary_font_name": "Orbitron",
+          "fallback_font_name": "Roboto",
         }
       `);
+
+      const primaryUrl = await buildGoogleFontsUrl(result.value.primary_font_name);
+      const fallbackUrl = await buildGoogleFontsUrl(result.value.fallback_font_name);
+
+      expect(primaryUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Orbitron:ital,wght@0,400;0,700;1,400;1,700&display=swap"`);
+      expect(fallbackUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"`);
     }, 10000);
 
     it("should suggest an exotic font for a 'vintage' theme", async () => {
@@ -32,9 +39,16 @@ describe("Google Font Fetching", () => {
       if (!result.ok) throw result.error;
       expect(result.value).toMatchInlineSnapshot(`
         {
-          "font_name": "Lora",
+          "primary_font_name": "Lora",
+          "fallback_font_name": "Roboto",
         }
       `);
+
+      const primaryUrl = await buildGoogleFontsUrl(result.value.primary_font_name);
+      const fallbackUrl = await buildGoogleFontsUrl(result.value.fallback_font_name);
+
+      expect(primaryUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,700;1,400;1,700&display=swap"`);
+      expect(fallbackUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"`);
     }, 10000);
 
     it("should suggest an exotic font for a 'gothic' theme", async () => {
@@ -44,11 +58,13 @@ describe("Google Font Fetching", () => {
       if (!nameResult.ok) throw nameResult.error;
       expect(nameResult.value).toMatchInlineSnapshot(`
         {
-          "font_name": "UnifrakturCook",
+          "primary_font_name": "UnifrakturCook",
+          "fallback_font_name": "Roboto",
         }
       `);
-      const primaryUrl = await buildGoogleFontsUrl(nameResult.value["font_name"]?.toString?.() ?? "");
-      const fallbackUrl = await buildGoogleFontsUrl("");
+
+      const primaryUrl = await buildGoogleFontsUrl(nameResult.value.primary_font_name);
+      const fallbackUrl = await buildGoogleFontsUrl(nameResult.value.fallback_font_name);
 
       expect(primaryUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=UnifrakturCook:ital,wght@0,700&display=swap"`);
       const cssResult = await fetchGoogleFontCSS(primaryUrl, fallbackUrl);
