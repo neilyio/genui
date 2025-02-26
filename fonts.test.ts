@@ -1,4 +1,5 @@
 import { describe, it, expect } from "bun:test";
+import { buildGoogleFontsUrl, fetchGoogleFontCSS, getFontWeights, parseGoogleFontCSS } from "./fonts";
 
 // ------------------ TESTS ------------------
 
