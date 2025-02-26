@@ -28,7 +28,7 @@ const server = Bun.serve({
 
         const mergedUIChanges = {
           ...imageResult.value.ui_changes,
-          ...fontResult.vars,
+          ...fontResult.ui_changes,
           css,
         };
 

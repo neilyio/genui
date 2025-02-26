@@ -53,7 +53,7 @@ async function fetchGoogleFontsMetadata() {
  * @param prompt - The theme prompt for which fonts are desired.
  * @returns {Promise<{ css: string, vars: { [key: string]: Json } }>} - A promise resolving to the CSS and font variables.
  */
-export async function executeFontFlow(prompt: string): Promise<{ css: string, vars: { [key: string]: Json } }> {
+export async function executeFontFlow(prompt: string): Promise<{ css: string, ui_changes: { [key: string]: Json } }> {
   const nameResult = await sendFontNameRequest(prompt);
   if (!nameResult.ok) throw nameResult.error;
 
@@ -68,7 +68,7 @@ export async function executeFontFlow(prompt: string): Promise<{ css: string, va
   const varsResult = await sendFontVarsRequest(fontString);
   if (!varsResult.ok) throw varsResult.error;
 
-  return { css: cssResult.value, vars: { ...varsResult.value } };
+  return { css: cssResult.value, ui_changes: { ...varsResult.value } };
 }
 
 /**
