@@ -52,54 +52,6 @@
     --info-button-color: var(--header-text-color);
 }
 
-:root {
-  --header-font-family: Arial, sans-serif;
-  --header-font-weight: 700;
-  --message-font-family: Arial, sans-serif;
-  --message-font-weight: 400;
-  --placeholder-font-family: Arial, sans-serif;
-  --placeholder-font-weight: 400;
-}
-
-#chat-header {
-  font-family: var(--header-font-family);
-  font-weight: var(--header-font-weight);
-}
-
-.message {
-  font-family: var(--message-font-family);
-  font-weight: var(--message-font-weight);
-}
-
-#message-input::placeholder {
-  font-family: var(--placeholder-font-family);
-  font-weight: var(--placeholder-font-weight);
-}
-
-:root {
-  --header-font-family: Arial, sans-serif;
-  --header-font-weight: 700;
-  --message-font-family: Arial, sans-serif;
-  --message-font-weight: 400;
-  --placeholder-font-family: Arial, sans-serif;
-  --placeholder-font-weight: 400;
-}
-
-#chat-header {
-  font-family: var(--header-font-family);
-  font-weight: var(--header-font-weight);
-}
-
-.message {
-  font-family: var(--message-font-family);
-  font-weight: var(--message-font-weight);
-}
-
-#message-input::placeholder {
-  font-family: var(--placeholder-font-family);
-  font-weight: var(--placeholder-font-weight);
-}
-
 /* You also had these from your existing code: */
 :root {
     --page-bg: #f9fafb;
@@ -128,6 +80,13 @@
     --message-padding: var(--bubble-padding);
     --message-max-width: var(--bubble-max-width);
     --message-line-height: var(--line-height);
+
+    --header-font-family: Arial, sans-serif;
+    --header-font-weight: 700;
+    --message-font-family: Arial, sans-serif;
+    --message-font-weight: 400;
+    --placeholder-font-family: Arial, sans-serif;
+    --placeholder-font-weight: 400;
 }
 
 /* Basic reset & transitions */
@@ -170,6 +129,8 @@ body {
     background-color: var(--header-background);
     color: var(--header-text-color);
     padding: 16px 20px;
+    font-family: var(--header-font-family);
+    font-weight: var(--header-font-weight);
     font-size: 16px;
     font-weight: 600;
     border-bottom: 1px solid var(--border-color);
@@ -348,6 +309,8 @@ body {
     max-width: var(--bubble-max-width);
     width: fit-content;
     word-wrap: break-word;
+    font-family: var(--message-font-family);
+    font-weight: var(--message-font-weight);
     font-size: var(--font-size);
     line-height: var(--message-line-height);
     box-shadow: var(--bubble-shadow);
@@ -482,8 +445,8 @@ body {
     border-style: var(--border-style);
     border-color: var(--border-color);
     border-radius: var(--global-border-radius);
-    font-size: var(--font-size);
-    font-family: var(--font-family);
+    font-family: var(--placeholder-font-family);
+    font-weight: var(--placeholder-font-weight);
     background-color: var(--input-background);
     color: var(--input-text);
     resize: none;
