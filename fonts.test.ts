@@ -49,6 +49,9 @@ export function buildGoogleFontsUrl(
       : "";
 
     const params = [weightParam, axesParam].filter(Boolean).join(",");
+    if (params) {
+      formattedFont += `:${params}`;
+    }
 
     if (params) {
       formattedFont += `:${params}`;
