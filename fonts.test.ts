@@ -179,10 +179,11 @@ describe("Google Font Fetching", () => {
   });
 
   it("should fail gracefully if the font name is blank", async () => {
-    const primaryUrl = buildGoogleFontsUrl("", {});
+    const weights = await getFontWeights("Roboto");
+    const primaryUrl = buildGoogleFontsUrl("", { weights });
     expect(primaryUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family="`);
-    const fallbackUrl = buildGoogleFontsUrl("Roboto", {});
-    expect(fallbackUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Roboto"`);
+    const fallbackUrl = buildGoogleFontsUrl("Roboto", { weights });
+    expect(fallbackUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Roboto:wght@100;200;300;400;500;600;700;800;900;100i;200i;300i;400i;500i;600i;700i;800i;900i"`);
     const result = await fetchGoogleFontCSS(primaryUrl, fallbackUrl);
     expect(result).toMatchInlineSnapshot(`
 {
@@ -216,21 +217,18 @@ describe("Google Font Fetching", () => {
   });
 
   it("should attempt to fetch from Google Fonts (no real network in snapshot test)", async () => {
+    const weights = await getFontWeights("Open Sans");
     const options: FontOptions = {
-      weights: [700],
+      weights,
       effects: ["shadow-multiple"],
     };
 
-    // In a real network-enabled test, this would make a real fetch.
-    // Here, let's see the immediate shape of the result object.
-    // (You would mock fetch in a real unit test.)
     const primaryUrl = buildGoogleFontsUrl("Open Sans", options);
-    expect(primaryUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Open+Sans:wght@700&effect=shadow-multiple"`);
+    expect(primaryUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700;800;300i;400i;500i;600i;700i;800i&effect=shadow-multiple"`);
     const fallbackUrl = buildGoogleFontsUrl("Roboto", options);
-    expect(fallbackUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Roboto:wght@700&effect=shadow-multiple"`);
+    expect(fallbackUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Roboto:wght@100;200;300;400;500;600;700;800;900;100i;200i;300i;400i;500i;600i;700i;800i;900i&effect=shadow-multiple"`);
     const result = await fetchGoogleFontCSS(primaryUrl, fallbackUrl);
 
-    // Show shape in snapshot
     expect(result).toMatchInlineSnapshot(`
 {
   "ok": true,
