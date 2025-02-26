@@ -3,19 +3,18 @@ import { describe, it, expect } from "bun:test";
 /**
  * Simple Result Type for "railroad-oriented" style returns.
  */
-export type Result<T, E> =
+export type FontResult<T> =
   | { ok: true; value: T }
-  | { ok: false; error: E };
+  | { ok: false; error: FontError };
 
 /**
  * Enumerated errors for Google Font fetching.
  */
-export enum FontError {
-  InvalidFontName = "InvalidFontName",
-  InvalidParameters = "InvalidParameters",
-  RequestFailed = "RequestFailed",
-  FallbackFailed = "FallbackFailed",
-}
+export type FontError =
+  | { type: "InvalidFontName" }
+  | { type: "InvalidParameters" }
+  | { type: "RequestFailed" }
+  | { type: "FallbackFailed" };
 
 /**
  * Options to customize the font URL.
