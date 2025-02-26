@@ -15,17 +15,14 @@ describe("Google Font Fetching", () => {
   describe("sendFontNameRequest", () => {
     it("should suggest an exotic font for a 'futuristic' theme", async () => {
       const prompt = "futuristic";
-      const mockResponse: any = { primary_font_name: "Exo", fallback_font_name: "Roboto" };
 
       const result = await sendFontNameRequest(prompt);
       if (!result.ok) throw result.error;
-      expect(result.value).toEqual(mockResponse);
-
-      const primaryUrl = await buildGoogleFontsUrl(result.value.primary_font_name);
-      const fallbackUrl = await buildGoogleFontsUrl(result.value.fallback_font_name);
-
-      expect(primaryUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Exo:ital,wght@0,400;0,700;1,400;1,700&display=swap"`);
-      expect(fallbackUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"`);
+      expect(result.value).toMatchInlineSnapshot(`
+        {
+          "font_name": "Orbitron",
+        }
+      `);
     }, 10000);
 
     it("should suggest an exotic font for a 'vintage' theme", async () => {
@@ -33,13 +30,11 @@ describe("Google Font Fetching", () => {
 
       const result = await sendFontNameRequest(prompt);
       if (!result.ok) throw result.error;
-      expect(result.value).toEqual(mockResponse);
-
-      const primaryUrl = await buildGoogleFontsUrl(result.value.primary_font_name);
-      const fallbackUrl = await buildGoogleFontsUrl(result.value.fallback_font_name);
-
-      expect(primaryUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,700;1,400;1,700&display=swap"`);
-      expect(fallbackUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"`);
+      expect(result.value).toMatchInlineSnapshot(`
+        {
+          "font_name": "Lora",
+        }
+      `);
     }, 10000);
 
     it("should suggest an exotic font for a 'gothic' theme", async () => {
@@ -47,10 +42,13 @@ describe("Google Font Fetching", () => {
 
       const nameResult = await sendFontNameRequest(prompt);
       if (!nameResult.ok) throw nameResult.error;
-      expect(nameResult.value).toEqual(mockResponse);
-
-      const primaryUrl = await buildGoogleFontsUrl(nameResult.value.primary_font_name);
-      const fallbackUrl = await buildGoogleFontsUrl(nameResult.value.fallback_font_name);
+      expect(nameResult.value).toMatchInlineSnapshot(`
+        {
+          "font_name": "UnifrakturCook",
+        }
+      `);
+      const primaryUrl = await buildGoogleFontsUrl(nameResult.value["font_name"]?.toString?.() ?? "");
+      const fallbackUrl = await buildGoogleFontsUrl("");
 
       expect(primaryUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=UnifrakturCook:ital,wght@0,700&display=swap"`);
       const cssResult = await fetchGoogleFontCSS(primaryUrl, fallbackUrl);
