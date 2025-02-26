@@ -63,6 +63,10 @@ type Result<T> = ResultOk<T> | ResultErr;
 
 function ok<T>(value: T): ResultOk<T> {
   return { ok: true, value };
+  ReadableLight1: ColorInfo | null;
+  ReadableLight2: ColorInfo | null;
+  ReadableDark1: ColorInfo | null;
+  ReadableDark2: ColorInfo | null;
 }
 
 function err(message: string): ResultErr {
@@ -336,7 +340,62 @@ class CustomPalette {
       DarkMuted: vibrantPalette.DarkMuted ? { hex: vibrantPalette.DarkMuted.hex, population: vibrantPalette.DarkMuted.population } : null,
       LightVibrant: vibrantPalette.LightVibrant ? { hex: vibrantPalette.LightVibrant.hex, population: vibrantPalette.LightVibrant.population } : null,
       LightMuted: vibrantPalette.LightMuted ? { hex: vibrantPalette.LightMuted.hex, population: vibrantPalette.LightMuted.population } : null,
+      ReadableLight1: vibrantPalette.LightMuted ? this.adjustLightness(vibrantPalette.LightMuted, 0.1) : null,
+      ReadableLight2: vibrantPalette.LightMuted ? this.adjustLightness(vibrantPalette.LightMuted, 0.2) : null,
+      ReadableDark1: vibrantPalette.DarkMuted ? this.adjustLightness(vibrantPalette.DarkMuted, 0.1) : null,
+      ReadableDark2: vibrantPalette.DarkMuted ? this.adjustLightness(vibrantPalette.DarkMuted, 0.2) : null,
     };
+  }
+
+  private adjustLightness(color: ColorInfo, amount: number): ColorInfo {
+    const hsl = this.hexToHsl(color.hex);
+    hsl[2] = Math.min(1, hsl[2] + amount); // Increase lightness
+    return { hex: this.hslToHex(hsl), population: color.population };
+  }
+
+  private hexToHsl(hex: string): [number, number, number] {
+    // Convert hex to HSL
+    const r = parseInt(hex.slice(1, 3), 16) / 255;
+    const g = parseInt(hex.slice(3, 5), 16) / 255;
+    const b = parseInt(hex.slice(5, 7), 16) / 255;
+
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h = 0, s = 0, l = (max + min) / 2;
+
+    if (max !== min) {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2; break;
+        case b: h = (r - g) / d + 4; break;
+      }
+      h /= 6;
+    }
+
+    return [h, s, l];
+  }
+
+  private hslToHex(hsl: [number, number, number]): string {
+    // Convert HSL to hex
+    const [h, s, l] = hsl;
+    const hue2rgb = (p: number, q: number, t: number) => {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1 / 6) return p + (q - p) * 6 * t;
+      if (t < 1 / 2) return q;
+      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+      return p;
+    };
+
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    const r = hue2rgb(p, q, h + 1 / 3);
+    const g = hue2rgb(p, q, h);
+    const b = hue2rgb(p, q, h - 1 / 3);
+
+    return `#${Math.round(r * 255).toString(16).padStart(2, '0')}${Math.round(g * 255).toString(16).padStart(2, '0')}${Math.round(b * 255).toString(16).padStart(2, '0')}`;
   }
 
   getColor(variants: ColorVariant[]): string {
