@@ -24,9 +24,12 @@ const server = Bun.serve({
         if (!imageResult.ok) throw new Error(`Image processing failed: ${imageResult.error}`);
         if (!fontResult) throw new Error(`Font processing failed`);
 
+        const css = fontResult.css;
+
         const mergedUIChanges = {
           ...imageResult.value.ui_changes,
           ...fontResult.vars,
+          css,
         };
 
         // Ensure the response structure is correct
