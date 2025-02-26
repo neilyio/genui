@@ -16,43 +16,56 @@ export type FontError =
   | { type: "RequestFailed" }
   | { type: "FallbackFailed" };
 
-/**
- * Options to customize the font URL.
- * You can expand this as needed.
- */
 export interface FontOptions {
   weights?: Array<number | string>; // e.g. [400, 700, "italic", "bolditalic"]
-  subsets?: string[];              // e.g. ["latin", "cyrillic", "greek"]
-  display?: string;                // e.g. "swap", "fallback", etc.
-  text?: string;                   // e.g. "Hello World"
-  effects?: string[];             // e.g. ["shadow-multiple", "3d-float"]
+  italics?: Array<{ italic: 0 | 1; weight: number }>; // e.g. [{ italic: 0, weight: 400 }, { italic: 1, weight: 700 }]
+  axes?: Record<string, string | number>; // e.g. { wght: "200..900", ital: 1 }
+  subsets?: string[]; // e.g. ["latin", "cyrillic", "greek"]
+  display?: string; // e.g. "swap", "fallback", etc.
+  text?: string; // e.g. "Hello World"
+  effects?: string[]; // e.g. ["shadow-multiple", "3d-float"]
 }
 
 /**
- * Build a Google Fonts URL from the font name and options.
- * Returns a plain string (assumes valid input).
+ * Builds the new Google Fonts API v2 URL with effects support.
  */
 export function buildGoogleFontsUrl(
-  rawFontName: string,
+  fontNames: string | string[],
   options: FontOptions
 ): string {
-  // Trim the raw font name and replace spaces with '+'
-  const familyName = rawFontName.trim().replace(/\s+/g, "+");
+  // Ensure it's an array
+  const fontList = Array.isArray(fontNames) ? fontNames : [fontNames];
 
-  // We'll build up the "family=" parameter with optional weights/effects
-  let familyParam = familyName;
+  // Convert each font into the correct format
+  const familyParams = fontList.map((font) => {
+    let formattedFont = font.trim().replace(/\s+/g, "+");
 
-  // If weights are specified, e.g. [400, 700, "i", "bolditalic"]
-  // these can be appended like: "Open+Sans:400,700,italic,bolditalic"
-  if (options.weights && options.weights.length > 0) {
-    // Convert each weight to the string version, e.g. 700 -> "700"
-    const weightsList = options.weights.map(String).join(",");
-    familyParam += `:${weightsList}`;
-  }
+    // Handle weights
+    if (options.weights && options.weights.length > 0) {
+      formattedFont += `:wght@${options.weights.join(";")}`;
+    }
 
-  // Start constructing the base URL
-  // Example: https://fonts.googleapis.com/css?family=Open+Sans:400,700
-  let url = `https://fonts.googleapis.com/css?family=${familyParam}`;
+    // Handle italics
+    if (options.italics && options.italics.length > 0) {
+      const italicsParam = options.italics
+        .map(({ italic, weight }) => `${italic},${weight}`)
+        .join(";");
+      formattedFont += `:ital,wght@${italicsParam}`;
+    }
+
+    // Handle variable font axes
+    if (options.axes && Object.keys(options.axes).length > 0) {
+      const axes = Object.keys(options.axes)
+        .sort() // Sort alphabetically
+        .map((key) => `${key}@${options.axes![key]}`)
+        .join(";");
+      formattedFont += `:${axes}`;
+    }
+
+    return `family=${formattedFont}`;
+  });
+
+  let url = `https://fonts.googleapis.com/css2?${familyParams.join("&")}`;
 
   // If subsets are specified
   if (options.subsets && options.subsets.length > 0) {
@@ -69,13 +82,14 @@ export function buildGoogleFontsUrl(
     url += `&text=${encodeURIComponent(options.text)}`;
   }
 
-  // If effects= are specified (in Google Fonts "beta" features)
+  // If effects are specified (only available for some fonts)
   if (options.effects && options.effects.length > 0) {
     url += `&effect=${options.effects.join("|")}`;
   }
 
   return url;
 }
+
 
 /**
  * Fetch the Google Fonts CSS from a given URL, returning a Result.
@@ -161,25 +175,30 @@ describe("Google Font Fetching", () => {
 
     const url = buildGoogleFontsUrl("Open Sans", options);
     expect(url).toMatchInlineSnapshot(
-      `\"https://fonts.googleapis.com/css?family=Open+Sans:400,700,italic&subset=latin,greek&display=swap&text=Hello%20World!&effect=shadow-multiple|3d-float\"`
-    );
+      `"https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700;italic&subset=latin,greek&display=swap&text=Hello%20World!&effect=shadow-multiple|3d-float"`);
     expect(url).toMatchInlineSnapshot(
-      `\"https://fonts.googleapis.com/css?family=Open+Sans:400,700,italic&subset=latin,greek&display=swap&text=Hello%20World!&effect=shadow-multiple|3d-float\"`
-    );
+      `"https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700;italic&subset=latin,greek&display=swap&text=Hello%20World!&effect=shadow-multiple|3d-float"`);
   });
 
   it("should fail gracefully if the font name is blank", async () => {
     const primaryUrl = buildGoogleFontsUrl("", {});
-    expect(primaryUrl).toMatchInlineSnapshot(`\"https://fonts.googleapis.com/css?family=\"`);
+    expect(primaryUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family="`);
     const fallbackUrl = buildGoogleFontsUrl("Roboto", {});
-    expect(fallbackUrl).toMatchInlineSnapshot(`\"https://fonts.googleapis.com/css?family=Roboto\"`);
+    expect(fallbackUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Roboto"`);
     const result = await fetchGoogleFontCSS(primaryUrl, fallbackUrl);
     expect(result).toMatchInlineSnapshot(`
 {
-  "error": {
-    "type": "FallbackFailed",
-  },
-  "ok": false,
+  "ok": true,
+  "value": 
+"@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 400;
+  font-stretch: normal;
+  src: url(https://fonts.gstatic.com/s/roboto/v47/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbWmT.ttf) format('truetype');
+}
+"
+,
 }
 `);
   });
@@ -193,7 +212,7 @@ describe("Google Font Fetching", () => {
     expect(result).toMatchInlineSnapshot(`
 {
   "ok": true,
-  "value": "https://fonts.googleapis.com/css?family=Open+Sans:700",
+  "value": "https://fonts.googleapis.com/css2?family=Open+Sans:wght@700",
 }
 `);
   });
@@ -208,18 +227,25 @@ describe("Google Font Fetching", () => {
     // Here, let's see the immediate shape of the result object.
     // (You would mock fetch in a real unit test.)
     const primaryUrl = buildGoogleFontsUrl("Open Sans", options);
-    expect(primaryUrl).toMatchInlineSnapshot(`\"https://fonts.googleapis.com/css?family=Open+Sans:700&effect=shadow-multiple\"`);
+    expect(primaryUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Open+Sans:wght@700&effect=shadow-multiple"`);
     const fallbackUrl = buildGoogleFontsUrl("Roboto", options);
-    expect(fallbackUrl).toMatchInlineSnapshot(`\"https://fonts.googleapis.com/css?family=Roboto:700&effect=shadow-multiple\"`);
+    expect(fallbackUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Roboto:wght@700&effect=shadow-multiple"`);
     const result = await fetchGoogleFontCSS(primaryUrl, fallbackUrl);
 
     // Show shape in snapshot
     expect(result).toMatchInlineSnapshot(`
 {
-  "error": {
-    "type": "FallbackFailed",
-  },
-  "ok": false,
+  "ok": true,
+  "value": 
+"@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-stretch: normal;
+  src: url(https://fonts.gstatic.com/s/opensans/v40/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsg-1y4n.ttf) format('truetype');
+}
+"
+,
 }
 `);
   });
@@ -231,11 +257,11 @@ describe("Google Font Fetching", () => {
     const primaryUrl = buildGoogleFontsUrl("ImaginaryFontNameThatDoesNotExist", {
       weights: [9999],
     });
-    expect(primaryUrl).toMatchInlineSnapshot(`\"https://fonts.googleapis.com/css?family=ImaginaryFontNameThatDoesNotExist:9999\"`);
+    expect(primaryUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=ImaginaryFontNameThatDoesNotExist:wght@9999"`);
     const fallbackUrl = buildGoogleFontsUrl("Roboto", {
       weights: [9999],
     });
-    expect(fallbackUrl).toMatchInlineSnapshot(`\"https://fonts.googleapis.com/css?family=Roboto:9999\"`);
+    expect(fallbackUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Roboto:wght@9999"`);
     const result = await fetchGoogleFontCSS(primaryUrl, fallbackUrl);
 
     expect(result).toMatchInlineSnapshot(`
@@ -254,17 +280,71 @@ describe("Google Font Fetching", () => {
     };
 
     const primaryUrl = buildGoogleFontsUrl("Open Sans", options);
-    expect(primaryUrl).toMatchInlineSnapshot(`\"https://fonts.googleapis.com/css?family=Open+Sans:wght@100..900\"`);
+    expect(primaryUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Open+Sans:wght@wght@100..900"`);
     const fallbackUrl = buildGoogleFontsUrl("Roboto", options);
-    expect(fallbackUrl).toMatchInlineSnapshot(`\"https://fonts.googleapis.com/css?family=Roboto:wght@100..900\"`);
-    const result = await fetchGoogleFontCSS(primaryUrl, fallbackUrl);
+    expect(fallbackUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Roboto:wght@wght@100..900"`);
+    const result = await fetchGoogleFontCSS("https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,200..900;1,700", fallbackUrl);
 
     expect(result).toMatchInlineSnapshot(`
 {
-  "error": {
-    "type": "FallbackFailed",
-  },
-  "ok": false,
+  "ok": true,
+  "value": 
+"@font-face {
+  font-family: 'Crimson Pro';
+  font-style: italic;
+  font-weight: 700;
+  src: url(https://fonts.gstatic.com/s/crimsonpro/v24/q5uSsoa5M_tv7IihmnkabAReu49Y_Bo-HVKMBi5zfJs7.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Crimson Pro';
+  font-style: normal;
+  font-weight: 200;
+  src: url(https://fonts.gstatic.com/s/crimsonpro/v24/q5uUsoa5M_tv7IihmnkabC5XiXCAlXGks1WZTm18OA.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Crimson Pro';
+  font-style: normal;
+  font-weight: 300;
+  src: url(https://fonts.gstatic.com/s/crimsonpro/v24/q5uUsoa5M_tv7IihmnkabC5XiXCAlXGks1WZkG18OA.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Crimson Pro';
+  font-style: normal;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/crimsonpro/v24/q5uUsoa5M_tv7IihmnkabC5XiXCAlXGks1WZzm18OA.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Crimson Pro';
+  font-style: normal;
+  font-weight: 500;
+  src: url(https://fonts.gstatic.com/s/crimsonpro/v24/q5uUsoa5M_tv7IihmnkabC5XiXCAlXGks1WZ_G18OA.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Crimson Pro';
+  font-style: normal;
+  font-weight: 600;
+  src: url(https://fonts.gstatic.com/s/crimsonpro/v24/q5uUsoa5M_tv7IihmnkabC5XiXCAlXGks1WZEGp8OA.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Crimson Pro';
+  font-style: normal;
+  font-weight: 700;
+  src: url(https://fonts.gstatic.com/s/crimsonpro/v24/q5uUsoa5M_tv7IihmnkabC5XiXCAlXGks1WZKWp8OA.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Crimson Pro';
+  font-style: normal;
+  font-weight: 800;
+  src: url(https://fonts.gstatic.com/s/crimsonpro/v24/q5uUsoa5M_tv7IihmnkabC5XiXCAlXGks1WZTmp8OA.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Crimson Pro';
+  font-style: normal;
+  font-weight: 900;
+  src: url(https://fonts.gstatic.com/s/crimsonpro/v24/q5uUsoa5M_tv7IihmnkabC5XiXCAlXGks1WZZ2p8OA.ttf) format('truetype');
+}
+"
+,
 }
 `);
   });
