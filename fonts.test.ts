@@ -173,7 +173,9 @@ describe("Google Font Fetching", () => {
     const result = await fetchGoogleFontCSS("", {});
     expect(result).toMatchInlineSnapshot(`
 {
-  "error": "InvalidFontName",
+  "error": {
+    "type": "InvalidFontName",
+  },
   "ok": false,
 }
 `);
@@ -202,9 +204,11 @@ describe("Google Font Fetching", () => {
 
     // Show shape in snapshot
     expect(result).toMatchInlineSnapshot(`
-Object {
+{
+  "error": {
+    "type": "RequestFailed",
+  },
   "ok": false,
-  "error": "RequestFailed",
 }
 `);
   });
@@ -218,9 +222,11 @@ Object {
     });
 
     expect(result).toMatchInlineSnapshot(`
-Object {
+{
+  "error": {
+    "type": "FallbackFailed",
+  },
   "ok": false,
-  "error": "FallbackFailed",
 }
 `);
   });
