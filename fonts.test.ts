@@ -88,10 +88,10 @@ export async function fetchGoogleFontCSS(
   fontName: string,
   options: FontOptions,
   fallbackFontName: string = "Roboto" // some known fallback
-): Promise<Result<string, FontError>> {
+): Promise<FontResult<string>> {
   // Basic validation
   if (!fontName || !fontName.trim()) {
-    return { ok: false, error: FontError.InvalidFontName };
+    return { ok: false, error: { type: "InvalidFontName" } };
   }
 
   // Build primary URL
@@ -136,7 +136,7 @@ async function fetchFallbackCSS(
     response = await fetch(fallbackUrl);
   } catch (err) {
     // Fallback fetch also failed entirely
-    return { ok: false, error: FontError.FallbackFailed };
+    return { ok: false, error: { type: "FallbackFailed" } };
   }
 
   if (!response.ok) {
@@ -197,7 +197,7 @@ describe("Google Font Fetching", () => {
     } catch (e) {
       // If you're offline or if fetch isn't available, we'll simulate
       // the fallback by returning manually.
-      result = { ok: false, error: FontError.RequestFailed };
+      result = { ok: false, error: { type: "RequestFailed" } };
     }
 
     // Show shape in snapshot
