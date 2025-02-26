@@ -68,7 +68,7 @@ export async function executeFontFlow(prompt: string): Promise<{ css: string, va
   const varsResult = await sendFontVarsRequest(fontString);
   if (!varsResult.ok) throw varsResult.error;
 
-  return { css: cssResult.value, vars: varsResult.value };
+  return { css: cssResult.value, vars: { ...varsResult.value } };
 }
 
 /**
