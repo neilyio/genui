@@ -504,12 +504,12 @@ export const generatePaletteFromUrl = async (
 // Test implementation
 const testPaletteGeneration = async () => {
   const url = "https://upload.wikimedia.org/wikipedia/commons/0/03/Trending_colors_2017.png";
-  const { darkMode, lightMode } = await generatePaletteFromUrl(url);
+  const cssVars = await generatePaletteFromUrl(url);
 
-  Bun.write("./testcolors.json", JSON.stringify(darkMode));
+  Bun.write("./testcolors.json", JSON.stringify(cssVars));
 
   // Test assertions
-  expect(darkMode).toMatchInlineSnapshot(`
+  expect(cssVars).toMatchInlineSnapshot(`
     {
       "assistant_message_background": "#404c63",
       "assistant_message_text_color": "#b4b470",
@@ -529,29 +529,6 @@ const testPaletteGeneration = async () => {
       "text_color": "#f6de82",
       "user_message_background": "#404c63",
       "user_message_text_color": "#7c6308",
-    }
-  `);
-
-  expect(lightMode).toMatchInlineSnapshot(`
-    {
-      "assistant_message_background": "#c6c691",
-      "assistant_message_text_color": "#2c3444",
-      "attachment_button_bg": "#b4b470",
-      "attachment_button_color": "#f6de82",
-      "background_color": "#b4b470",
-      "border_color": "#b4b470",
-      "chat_background": "#b4b470",
-      "header_background": "#f6de82",
-      "header_text_color": "#7c6308",
-      "info_button_color": "#5484a4",
-      "page_bg": "#f6de82",
-      "primary_color": "#f6de82",
-      "secondary_color": "#5484a4",
-      "send_button_bg": "#5484a4",
-      "send_button_color": "#7c6308",
-      "text_color": "#7c6308",
-      "user_message_background": "#c6c691",
-      "user_message_text_color": "#f6de82",
     }
   `);
 };
