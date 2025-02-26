@@ -1,5 +1,5 @@
 import { test, expect } from "bun:test";
-import { downsample, scrapeBingImages, stitchHorizontallyAlpha } from "./images";
+import { downsample, processChatMessageFlow, scrapeBingImages, stitchHorizontallyAlpha } from "./images";
 import sharp from 'sharp';
 import { Vibrant } from "node-vibrant/node";
 import { sendPaletteRequest } from "./all";
@@ -215,18 +215,44 @@ test.skip("stitch color palettes from 10 URLs", async () => {
 
 }, 20000);
 
-test("combine to one and gpt analyze", async () => {
-  const contents: ChatMessageContent[] = [
-    { type: "text", text: "superman color palette" }
+test.skip("combine to one and gpt analyze", async () => {
+  // This test is now redundant as the logic has been moved to processChatMessageFlow
+  const n = 4;
+  const searchTerm = "superman color palette";
+  const imageUrls = await scrapeBingImages(searchTerm, n);
+
+  const promises = imageUrls.map((url) =>
+    Bun.fetch(url)
+      .then((r) => r.arrayBuffer())
+      .then((b) => Buffer.from(b))
+      .then((b) => downsample(b, 300))
+  );
+
+  const buffers = await Promise.allSettled(promises)
+    .then((rs) =>
+      rs
+        .filter((r) => r.status === "fulfilled")
+        .map((r) => r.value)
+        .filter((r) => r.ok)
+        .map((r) => r.value)
+    );
+
+  const stitchedResult = await stitchHorizontallyAlpha(buffers);
+  if (!stitchedResult.ok) throw stitchedResult.error;
+
+  const stitchedBuffer = await stitchedResult.value.toBuffer();
+  const base64Image = `data:image/png;base64,${stitchedBuffer.toString("base64")}`;
+
+  const urls: ChatMessageContent[] = [
+    { type: "image_url", image_url: { url: base64Image, detail: "low" } },
   ];
 
-  const result = await processChatMessageFlow(contents);
+  let css = await sendPaletteRequest(urls).then((r) => {
+    if (!r.ok) throw new Error(`${JSON.stringify(r.error)}`);
+    return r.value;
+  });
 
-  if (!result.ok) {
-    throw new Error(`Flow processing failed: ${result.error}`);
-  }
-
-  expect(result.value).toMatchInlineSnapshot(`
+  expect(css).toMatchInlineSnapshot(`
     {
       "ui_changes": {
         "assistant_message_background": "#F2F2F2",
@@ -249,6 +275,47 @@ test("combine to one and gpt analyze", async () => {
         "send_button_color": "#FFFFFF",
         "text_color": "#1A1A1A",
         "user_message_background": "#C72C3B",
+        "user_message_border_color": "#A52A2A",
+        "user_message_text_color": "#FFFFFF",
+      },
+    }
+  `);
+}, 30000);
+
+test("color processing flow", async () => {
+  const contents: ChatMessageContent[] = [
+    { type: "text", text: "superman color palette" }
+  ];
+
+  const result = await processChatMessageFlow(contents);
+
+  if (!result.ok) {
+    throw new Error(`Flow processing failed: ${result.error}`);
+  }
+
+  expect(result.value).toMatchInlineSnapshot(`
+    {
+      "ui_changes": {
+        "assistant_message_background": "#F2F2F2",
+        "assistant_message_border_color": "#CCCCCC",
+        "assistant_message_text_color": "#1A1A1A",
+        "attachment_button_bg": "#C72C41",
+        "attachment_button_color": "#FFFFFF",
+        "background_color": "#F2F2F2",
+        "border_color": "#CCCCCC",
+        "button_icon_color": "#FFFFFF",
+        "chat_background": "#F9F9F9",
+        "header_background": "#1A4D9B",
+        "header_text_color": "#FFFFFF",
+        "info_button_color": "#1A4D9B",
+        "input_background": "#E6E6E6",
+        "page_bg": "#FFFFFF",
+        "primary_color": "#1A4D9B",
+        "secondary_color": "#C72C41",
+        "send_button_bg": "#1A4D9B",
+        "send_button_color": "#FFFFFF",
+        "text_color": "#1A1A1A",
+        "user_message_background": "#C72C41",
         "user_message_border_color": "#A52A2A",
         "user_message_text_color": "#FFFFFF",
       },
