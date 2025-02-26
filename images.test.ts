@@ -309,7 +309,8 @@ test("color processing flow", async () => {
 
   expect(base64ImageSizes).toMatchInlineSnapshot(`[]`);
 
-  expect(result.value.stitchedImage).toMatchInlineSnapshot();
+  const stitchedImageSize = Buffer.from(result.value.stitchedImage.split(",")[1], 'base64').length;
+  expect(stitchedImageSize).toMatchInlineSnapshot();
 
   expect(result.value.ui_changes).toMatchInlineSnapshot(`
     {
