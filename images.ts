@@ -228,13 +228,13 @@ async function stitchHorizontallyAlpha(
   }
 }
 
-export async function processChatMessageFlow(message: ChatMessageContent): Promise<any> {
+export async function processChatMessageFlow(content: ChatMessageContent): Promise<any> {
   let imageUrls: string[] = [];
 
-  if (message.type === "text") {
-    imageUrls = await scrapeBingImages(message.text, 4);
-  } else if (message.type === "image_url") {
-    imageUrls = message.image_urls.map(url => url.url);
+  if (content.type === "text") {
+    imageUrls = await scrapeBingImages(content.text, 4);
+  } else if (content.type === "image_url") {
+    imageUrls = content.image_url.map(url => url.url);
   }
 
   const promises = imageUrls.map((url) =>
