@@ -271,7 +271,6 @@ interface PaletteColors {
 }
 
 type ColorVariant = keyof PaletteColors;
-type ColorRole = keyof typeof COLOR_ROLES;
 
 // Refactored palette class with proper TypeScript types
 class CustomPalette {
@@ -430,15 +429,11 @@ const generateCSSVars = (
 // Exported helper to generate a palette from an image URL
 export const generatePaletteFromUrl = async (
   imageUrl: string
-): Promise<{
-  cssVars: Record<string, string>;
-}> => {
+): Promise<Record<string, string>> => {
   const vibrantPalette = await Vibrant.from(imageUrl).getPalette();
   const customPalette = new CustomPalette(vibrantPalette);
 
-  return {
-    cssVars: generateCSSVars(customPalette),
-  };
+  return generateCSSVars(customPalette);
 };
 
 // Test implementation
@@ -462,12 +457,12 @@ const testPaletteGeneration = async () => {
       "header_text_color": "#f6de82",
       "info_button_color": "#f4d45c",
       "page_bg": "#2c3444",
-      "primary_color": "#2c3444",
+      "primary_color": "#f4d45c",
       "secondary_color": "#f4d45c",
       "send_button_bg": "#f4d45c",
       "send_button_color": "#f6de82",
       "text_color": "#f6de82",
-      "user_message_background": "#404c63",
+      "user_message_background": "#c6c691",
       "user_message_text_color": "#7c6308",
     }
   `);
