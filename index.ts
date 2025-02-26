@@ -28,13 +28,24 @@ const server = Bun.serve({
         //   }
         // }
 
-        const response = await sendPaletteRequest(latest.content);
-        console.log("sent");
-        if (!response.ok) throw new Error(JSON.stringify(response.error));
-        return Response.json(
-          // { type: "ui_update", "content": "DONE!", ...response.value }
-          { type: "ui_update", content: "DONE!", ui_changes: testcolors }
-        );
+        const [imageResult, fontResult] = await Promise.all([
+          processChatMessageFlow(latest.content),
+          executeFontFlow(latest.content.map(c => c.type === "text" ? c.text : "").join(" "))
+        ]);
+
+        if (!imageResult.ok) throw new Error(`Image processing failed: ${imageResult.error}`);
+        if (!fontResult) throw new Error(`Font processing failed`);
+
+        const mergedUIChanges = {
+          ...imageResult.value.ui_changes,
+          ...fontResult.css
+        };
+
+        return Response.json({
+          type: "ui_update",
+          content: "DONE!",
+          ui_changes: mergedUIChanges
+        });
       }
     }
   }
