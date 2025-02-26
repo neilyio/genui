@@ -12,6 +12,41 @@ describe("Google Font Fetching", () => {
       `Promise {}`);
   });
 
+  describe("sendFontNameRequest", () => {
+    it("should suggest an exotic font for a 'futuristic' theme", async () => {
+      const prompt = "futuristic";
+      const mockResponse = { font_name: "Exo" };
+      
+      // Mock the sendChatRequest function to return the mockResponse
+      jest.spyOn(global, 'sendChatRequest').mockResolvedValueOnce(mockResponse);
+
+      const result = await sendFontNameRequest(prompt);
+      expect(result).toEqual(mockResponse);
+    });
+
+    it("should suggest an exotic font for a 'vintage' theme", async () => {
+      const prompt = "vintage";
+      const mockResponse = { font_name: "Great Vibes" };
+      
+      // Mock the sendChatRequest function to return the mockResponse
+      jest.spyOn(global, 'sendChatRequest').mockResolvedValueOnce(mockResponse);
+
+      const result = await sendFontNameRequest(prompt);
+      expect(result).toEqual(mockResponse);
+    });
+
+    it("should suggest an exotic font for a 'gothic' theme", async () => {
+      const prompt = "gothic";
+      const mockResponse = { font_name: "UnifrakturMaguntia" };
+      
+      // Mock the sendChatRequest function to return the mockResponse
+      jest.spyOn(global, 'sendChatRequest').mockResolvedValueOnce(mockResponse);
+
+      const result = await sendFontNameRequest(prompt);
+      expect(result).toEqual(mockResponse);
+    });
+  });
+
   it.skip("should fail gracefully if the font name is blank", async () => {
     const primaryUrl = await buildGoogleFontsUrl("");
     expect(primaryUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?&display=swap"`);
