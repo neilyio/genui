@@ -181,6 +181,20 @@ describe("Google Font Fetching", () => {
 `);
   });
 
+  it("should build a valid URL for 'Open Sans' with weights", () => {
+    const options: FontOptions = {
+      weights: [700],
+    };
+
+    const result = getGoogleFontsUrl("Open Sans", options);
+    expect(result).toMatchInlineSnapshot(`
+{
+  "ok": true,
+  "value": "https://fonts.googleapis.com/css?family=Open+Sans:700",
+}
+`);
+  });
+
   it("should attempt to fetch from Google Fonts (no real network in snapshot test)", async () => {
     const options: FontOptions = {
       weights: [700],
