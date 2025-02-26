@@ -1,3 +1,12 @@
+import {
+  sendChatRequest,
+  parseChatResponse,
+  type ChatResult,
+  type ChatMessage,
+  type Json,
+} from "./chat.js";
+import config from "./config.toml";
+
 /**
  * Simple Result Type for "railroad-oriented" style returns.
  */
@@ -209,4 +218,81 @@ async function fetchFallbackCSS(fallbackUrl: string): Promise<FontResult<string>
   }
 
   return { ok: true, value: css };
+}
+
+// Helper to build the JSON schema payload
+function chatPayload({
+  name,
+  messages,
+  properties,
+}: {
+  name: string;
+  messages: ChatMessage[];
+  properties: { [key: string]: Json };
+}): { [key: string]: unknown } {
+  const required = Object.keys(properties);
+  return {
+    model: config.model,
+    temperature: 0,
+    messages,
+    response_format: {
+      type: "json_schema",
+      json_schema: {
+        name,
+        strict: true,
+        schema: {
+          type: "object",
+          properties,
+          required,
+          additionalProperties: false,
+        },
+      },
+    },
+  };
+}
+
+
+
+/**
+ * Sends a request to the chat model to determine a font name based on a string prompt.
+ * 
+ * @param prompt - The user prompt for which a font name is desired.
+ * @returns {Promise<ChatResult<string>>} - A promise resolving to the font name.
+ */
+export async function sendFontNameRequest(
+  prompt: string
+): Promise<ChatResult<{ [key: string]: Json }>> {
+  // Prepare your messages (system + user)
+  const messages: ChatMessage[] = [
+    {
+      role: "system",
+      content: [
+        {
+          type: "text",
+          text: config.prompt.fontname, // or any system-level instructions
+        },
+      ],
+    },
+    {
+      role: "user",
+      content: [
+        {
+          type: "text",
+          text: prompt,
+        },
+      ],
+    },
+  ];
+
+  // Define the JSON schema for a single-string response
+  const payload = chatPayload({
+    name: "font_name_query",
+    messages,
+    properties: {
+      font_name: { type: "string" },
+    },
+  });
+
+  // Send the request, parse the response, and return just the `font_name` string
+  return sendChatRequest(payload).then(parseChatResponse);
 }

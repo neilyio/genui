@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { buildGoogleFontsUrl, fetchGoogleFontCSS, getFontWeights, parseGoogleFontCSS } from "./fonts";
+import { buildGoogleFontsUrl, fetchGoogleFontCSS, getFontWeights, parseGoogleFontCSS, sendFontNameRequest } from "./fonts";
 
 // ------------------ TESTS ------------------
 
@@ -15,36 +15,47 @@ describe("Google Font Fetching", () => {
   describe("sendFontNameRequest", () => {
     it("should suggest an exotic font for a 'futuristic' theme", async () => {
       const prompt = "futuristic";
-      const mockResponse = { font_name: "Exo" };
-      
-      // Mock the sendChatRequest function to return the mockResponse
-      jest.spyOn(global, 'sendChatRequest').mockResolvedValueOnce(mockResponse);
+      const mockResponse: any = { font_name: "Exo" };
 
       const result = await sendFontNameRequest(prompt);
-      expect(result).toEqual(mockResponse);
-    });
+      if (!result.ok) throw result.error;
+      expect(result.value).toMatchInlineSnapshot(`
+        {
+          "font_name": "Orbitron",
+        }
+      `);
+    }, 10000);
 
     it("should suggest an exotic font for a 'vintage' theme", async () => {
       const prompt = "vintage";
-      const mockResponse = { font_name: "Great Vibes" };
-      
-      // Mock the sendChatRequest function to return the mockResponse
-      jest.spyOn(global, 'sendChatRequest').mockResolvedValueOnce(mockResponse);
 
       const result = await sendFontNameRequest(prompt);
-      expect(result).toEqual(mockResponse);
-    });
+      if (!result.ok) throw result.error;
+      expect(result.value).toMatchInlineSnapshot(`
+        {
+          "font_name": "Lora",
+        }
+      `);
+    }, 10000);
 
     it("should suggest an exotic font for a 'gothic' theme", async () => {
       const prompt = "gothic";
-      const mockResponse = { font_name: "UnifrakturMaguntia" };
-      
-      // Mock the sendChatRequest function to return the mockResponse
-      jest.spyOn(global, 'sendChatRequest').mockResolvedValueOnce(mockResponse);
 
-      const result = await sendFontNameRequest(prompt);
-      expect(result).toEqual(mockResponse);
-    });
+      const nameResult = await sendFontNameRequest(prompt);
+      if (!nameResult.ok) throw nameResult.error;
+      expect(nameResult.value).toMatchInlineSnapshot(`
+        {
+          "font_name": "UnifrakturCook",
+        }
+      `);
+      const primaryUrl = await buildGoogleFontsUrl(nameResult.value["font_name"]?.toString?.() ?? "");
+      const fallbackUrl = await buildGoogleFontsUrl("");
+
+      expect(primaryUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=UnifrakturCook:ital,wght@0,700&display=swap"`);
+      const cssResult = await fetchGoogleFontCSS(primaryUrl, fallbackUrl);
+      if (!cssResult.ok) throw cssResult.error;
+      expect(parseGoogleFontCSS(cssResult.value)).toMatchInlineSnapshot(`"UnifrakturCook: 700"`);
+    }, 10000);
   });
 
   it.skip("should fail gracefully if the font name is blank", async () => {
