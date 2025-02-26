@@ -284,15 +284,16 @@ export async function sendFontNameRequest(
     },
   ];
 
-  // Define the JSON schema for a single-string response
+  // Define the JSON schema for primary and fallback font names
   const payload = chatPayload({
     name: "font_name_query",
     messages,
     properties: {
-      font_name: { type: "string" },
+      primary_font_name: { type: "string" },
+      fallback_font_name: { type: "string" },
     },
   });
 
-  // Send the request, parse the response, and return just the `font_name` string
+  // Send the request, parse the response, and return the font names
   return sendChatRequest(payload).then(parseChatResponse);
 }
