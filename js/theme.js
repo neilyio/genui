@@ -45,21 +45,12 @@ const CSS_VAR_MAP = {
 };
 
 export function updateTheme(changes, css) {
-  // 1. Get the CSS string from wherever you have it:
-  // const fontFaceCSS = css;
-  // // 2. Create a new <style> element
-  // const styleElement = document.createElement('style');
-  // styleElement.type = 'text/css';
-
-  // // 3. Add the CSS text
-  // styleElement.appendChild(document.createTextNode(fontFaceCSS));
-
-  // // 4. Append to the document <head>
-  // document.head.appendChild(styleElement);
-
-  // // 5. Now you can use "UnifrakturMaguntia" in CSS rules or inline styles, for example:
-  // document.body.style.fontFamily = "'UnifrakturMaguntia', serif";
-  // 
+  if (css) {
+    const styleElement = document.createElement('style');
+    styleElement.type = 'text/css';
+    styleElement.appendChild(document.createTextNode(css));
+    document.head.appendChild(styleElement);
+  }
   if (!changes) return;
 
   const root = document.documentElement;
@@ -74,24 +65,20 @@ export function updateTheme(changes, css) {
   });
 
   // Update font styles
-  if (changes.header_font_family) {
-    root.style.setProperty("--header-font-family", changes.header_font_family);
-  }
-  if (changes.header_font_weight) {
-    root.style.setProperty("--header-font-weight", changes.header_font_weight);
-  }
-  if (changes.message_font_family) {
-    root.style.setProperty("--message-font-family", changes.message_font_family);
-  }
-  if (changes.message_font_weight) {
-    root.style.setProperty("--message-font-weight", changes.message_font_weight);
-  }
-  if (changes.placeholder_font_family) {
-    root.style.setProperty("--placeholder-font-family", changes.placeholder_font_family);
-  }
-  if (changes.placeholder_font_weight) {
-    root.style.setProperty("--placeholder-font-weight", changes.placeholder_font_weight);
-  }
+  const fontProperties = [
+    "header_font_family",
+    "header_font_weight",
+    "message_font_family",
+    "message_font_weight",
+    "placeholder_font_family",
+    "placeholder_font_weight"
+  ];
+
+  fontProperties.forEach(prop => {
+    if (changes[prop]) {
+      root.style.setProperty(`--${prop.replace(/_/g, '-')}`, changes[prop]);
+    }
+  });
 
   // Apply dependent updates
   updateDependentVariables();
