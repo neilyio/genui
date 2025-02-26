@@ -319,6 +319,10 @@ interface PaletteColors {
   DarkMuted: ColorInfo | null;
   LightVibrant: ColorInfo | null;
   LightMuted: ColorInfo | null;
+  ReadableLight1: ColorInfo | null;
+  ReadableLight2: ColorInfo | null;
+  ReadableDark1: ColorInfo | null;
+  ReadableDark2: ColorInfo | null;
 }
 
 type ColorVariant = keyof PaletteColors;
@@ -336,7 +340,27 @@ class CustomPalette {
       DarkMuted: vibrantPalette.DarkMuted ? { hex: vibrantPalette.DarkMuted.hex, population: vibrantPalette.DarkMuted.population } : null,
       LightVibrant: vibrantPalette.LightVibrant ? { hex: vibrantPalette.LightVibrant.hex, population: vibrantPalette.LightVibrant.population } : null,
       LightMuted: vibrantPalette.LightMuted ? { hex: vibrantPalette.LightMuted.hex, population: vibrantPalette.LightMuted.population } : null,
+      ReadableLight1: vibrantPalette.LightMuted ? this.adjustLightness(vibrantPalette.LightMuted, 0.1) : null,
+      ReadableLight2: vibrantPalette.LightMuted ? this.adjustLightness(vibrantPalette.LightMuted, 0.2) : null,
+      ReadableDark1: vibrantPalette.DarkMuted ? this.adjustLightness(vibrantPalette.DarkMuted, 0.1) : null,
+      ReadableDark2: vibrantPalette.DarkMuted ? this.adjustLightness(vibrantPalette.DarkMuted, 0.2) : null,
     };
+  }
+
+  private adjustLightness(color: ColorInfo, amount: number): ColorInfo {
+    const hsl = this.hexToHsl(color.hex);
+    hsl[2] = Math.min(1, hsl[2] + amount); // Increase lightness
+    return { hex: this.hslToHex(hsl), population: color.population };
+  }
+
+  private hexToHsl(hex: string): [number, number, number] {
+    // Convert hex to HSL
+    // Implementation here...
+  }
+
+  private hslToHex(hsl: [number, number, number]): string {
+    // Convert HSL to hex
+    // Implementation here...
   }
 
   getColor(variants: ColorVariant[]): string {
@@ -378,7 +402,10 @@ const COLOR_ROLES: ColorRoles = {
   attachment_button_bg: { dark: ["Muted", "DarkMuted"], light: ["LightMuted", "LightVibrant"] },
   attachment_button_text: { dark: ["DarkMuted", "DarkVibrant"], light: ["LightVibrant", "Vibrant"] },
   info_button_color: { dark: ["Vibrant", "DarkVibrant"], light: ["Muted", "LightMuted"] },
-};
+  readable_light_1: "readable_light_1",
+  readable_light_2: "readable_light_2",
+  readable_dark_1: "readable_dark_1",
+  readable_dark_2: "readable_dark_2",
 
 // CSS variable mapping with proper typing
 type CssVariableName = keyof typeof CSS_COLOR_KEYS;
@@ -403,7 +430,10 @@ const CSS_COLOR_KEYS: Record<string, ColorRole> = {
   attachment_button_bg: "attachment_button_bg",
   attachment_button_color: "attachment_button_text",
   info_button_color: "info_button_color",
-};
+  readable_light_1: { dark: ["ReadableDark1"], light: ["ReadableLight1"] },
+  readable_light_2: { dark: ["ReadableDark2"], light: ["ReadableLight2"] },
+  readable_dark_1: { dark: ["ReadableDark1"], light: ["ReadableLight1"] },
+  readable_dark_2: { dark: ["ReadableDark2"], light: ["ReadableLight2"] },
 
 // Function to select colors with proper typing
 const selectColor = (
