@@ -310,20 +310,22 @@ test.skip("stitch color palettes from 10 URLs", async () => {
 test("combine to one and gpt analyze", async () => {
   const n = 4;
   const searchTerm = "legend of zelda";
-  const urls = await scrapeBingImages(searchTerm, n);
+  const imageUrls = await scrapeBingImages(searchTerm, n);
 
   const promises =
-    urls.map((url) => Bun.fetch(url)
+    imageUrls.map((url) => Bun.fetch(url)
       .then(r => r.arrayBuffer())
       .then(b => Buffer.from(b)).then(b => downsample(b, 300)));
 
-  const buffers =
-    await Promise.allSettled(promises)
-      .then(rs =>
-        rs.filter(r => r.status === "fulfilled")
-          .map(r => r.value)
-          .filter(r => r.ok)
-          .map(r => r.value));
+  const buffers = await Promise.allSettled(promises)
+    .then(rs =>
+      rs.filter(r => r.status === "fulfilled")
+        .map(r => r.value)
+        .filter(r => r.ok)
+        .map(r => r.value)
+    );
+
+  const urls = buffers.map(buffer => `data:image/jpeg;base64,${buffer.toString('base64')}`);
 
   // const stitched = await stitchHorizontallyAlpha(buffers).then(r => {
   //   if (!r.ok) throw new Error(`${r.error}`);
