@@ -1,4 +1,6 @@
 import { sendChatRequest, parseChatResponse, type Result, type ChatMessage, type Json } from "./chat.js";
+
+export type { Result, Json };
 import config from "./config.toml";
 
 /**

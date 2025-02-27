@@ -53,7 +53,7 @@ function chatPayload(
 
 
 export async function sendPaletteRequest(contents: ChatMessageContent[]):
-  Promise<ChatResult<{ ui_changes: Json }>> {
+  Promise<Result<{ ui_changes: Json }>> {
   const prompt = config.prompt.palette;
   let text: ChatMessageContent[] = [];
   let urls: Promise<ChatMessageContent>[] = [];
@@ -72,7 +72,7 @@ export async function sendPaletteRequest(contents: ChatMessageContent[]):
 
   const b64s: ChatMessageContent[] =
     await Promise.allSettled(urls)
-      .then(rs => rs.filter(r => r.status === 'fulfilled').map(r => r.value));
+      .then(rs => rs.filter((r): r is PromiseFulfilledResult<ChatMessageContent> => r.status === 'fulfilled').map(r => r.value));
 
   const payload = chatPayload({
     name: "send_query",

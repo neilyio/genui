@@ -1,5 +1,7 @@
 import type { Result, Json } from "./utils.ts";
 
+export type { Result, Json };
+
 export type ChatMessageContent =
   | { type: "text", text: string }
   | { type: "image_url", image_url: string }

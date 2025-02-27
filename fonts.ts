@@ -252,7 +252,7 @@ function chatPayload({
   messages: ChatMessage[];
   properties: { [key: string]: Json };
 }): { [key: string]: unknown } {
-  const required = Object.keys(properties);
+  const required = Object.keys(properties) as string[];
   return {
     model: config.model,
     temperature: 0,

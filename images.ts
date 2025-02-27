@@ -237,7 +237,7 @@ export async function colorPipeline(contents: ChatMessageContent[]): Promise<Res
   const buffers = await Promise.allSettled(promises)
     .then((rs) =>
       rs
-        .filter((r) => r.status === "fulfilled")
+        .filter((r): r is PromiseFulfilledResult<Result<Buffer>> => r.status === "fulfilled")
         .map((r) => r.value)
         .filter((r) => r.ok)
         .map((r) => r.value)

@@ -6,6 +6,8 @@ import {
   type ChatMessage,
   parseChatResponse,
 } from "./chat.js";
+
+export type { Result, Json };
 import config from "./config.toml";
 
 const MODEL = config.model;

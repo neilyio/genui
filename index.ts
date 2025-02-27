@@ -29,9 +29,9 @@ const server = Bun.serve({
         if (!layoutResult.ok) throw new Error(`Layout processing failed: ${layoutResult.error}`);
 
         // Ensure the response structure is correct
-        return Response.json({
+        return new Response(JSON.stringify({
           type: "ui_update",
-          content: textResult,
+          content: textResult || "",
           ui_changes: {
             ...imageResult.value.ui_changes,
             ...fontResult.value.ui_changes,

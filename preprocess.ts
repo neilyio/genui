@@ -70,5 +70,5 @@ async function extractKeywords(prompt: string): Promise<Result<{ [key: string]: 
     },
   };
 
-  return sendChatRequest(payload).then(parseChatResponse);
+  return sendChatRequest(payload as { [key: string]: Json }).then(parseChatResponse);
 }

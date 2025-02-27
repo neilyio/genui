@@ -1,6 +1,6 @@
 // chat.test.ts
 
-import { sendChatRequest, type ChatPayload, type Result } from "./chat";
+import { sendChatRequest, type ChatPayload, type Result } from "./chat.ts";
 import { describe, expect, it, beforeEach, afterEach } from "bun:test";
 
 // Save the original fetch and API key.
@@ -22,7 +22,7 @@ describe("sendChatRequest", () => {
   it("returns a MissingApiKey error when OPENAI_API_KEY is missing", async () => {
     delete process.env.OPENAI_API_KEY;
     const payload: ChatPayload = { model: "test-model", messages: [] };
-    const result: ChatResult<unknown> = await sendChatRequest(payload);
+    const result: Result<unknown> = await sendChatRequest(payload);
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
@@ -61,7 +61,7 @@ describe("sendChatRequest", () => {
       },
     };
 
-    const result: ChatResult<unknown> = await sendChatRequest(payload);
+    const result: Result<unknown> = await sendChatRequest(payload);
 
     expect(result.ok).toBe(false);
     if (!result.ok && result.error.type === "HttpError") {
