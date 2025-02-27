@@ -25,7 +25,7 @@ const server = Bun.serve({
         ]);
 
         if (!imageResult.ok) throw new Error(`Image processing failed: ${imageResult.error}`);
-        if (!fontResult) throw new Error(`Font processing failed`);
+        if (!fontResult.ok) throw new Error(`Font processing failed`);
         if (!layoutResult.ok) throw new Error(`Layout processing failed: ${layoutResult.error}`);
 
         // Ensure the response structure is correct
@@ -34,10 +34,10 @@ const server = Bun.serve({
           content: textResult,
           ui_changes: {
             ...imageResult.value.ui_changes,
-            ...fontResult.ui_changes,
+            ...fontResult.value.ui_changes,
             ...layoutResult.value.ui_changes,
           },
-          css: fontResult.css
+          css: fontResult.value.css
         });
       }
     }

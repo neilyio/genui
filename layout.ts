@@ -1,6 +1,6 @@
-import { sendChatRequest, parseChatResponse, type ChatMessage, type Result } from "./chat.js";
+import { sendChatRequest, parseChatResponse, type ChatMessage } from "./chat.js";
 import config from "./config.toml";
-import type { Json } from "./utils.js";
+import type { Json, Result } from "./utils.js";
 
 /**
  * Sends a request to the chat model to determine layout variables based on a theme prompt.
@@ -77,6 +77,6 @@ export async function layoutPipeline(prompt: string): Promise<Result<{ [key: str
 
   return await sendChatRequest(payload).then(response => {
     if (!response.ok) return response;
-    return { ok: true, value: { ui_changes: response.value } };
+    return { ok: true, value: { ui_changes: response.value as Json } };
   });
 }

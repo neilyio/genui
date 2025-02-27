@@ -1,5 +1,6 @@
-import { sendChatRequest, parseChatResponse, type Result, type ChatMessage, type Json } from "./chat.js";
+import { sendChatRequest, parseChatResponse, type ChatMessage } from "./chat.js";
 import config from "./config.toml";
+import type { Json, Result } from "./utils.js";
 
 /**
  * Preprocesses chat messages to extract keywords from user input.
@@ -26,7 +27,7 @@ export async function preprocessPipeline(message: ChatMessage): Promise<ChatMess
  * @param prompt - The user prompt for which keywords are desired.
  * @returns {Promise<ChatResult<{ keywords: string }>>} - A promise resolving to the extracted keywords.
  */
-async function extractKeywords(prompt: string): Promise<ChatResult<{ [key: string]: Json }>> {
+async function extractKeywords(prompt: string): Promise<Result<{ [key: string]: Json }>> {
   const messages: ChatMessage[] = [
     {
       role: "system",

@@ -1,4 +1,4 @@
-import { Result, Json } from "./result.ts";
+import type { Result, Json } from "./utils.ts";
 
 export type ChatMessageContent =
   | { type: "text", text: string }
@@ -35,7 +35,7 @@ export interface ChatPayload {
   response_format?: JsonSchemaFormat;
 }
 
-export function parseChatResponse(response: ChatResult<unknown>): ChatResult<{ [key: string]: Json }> {
+export function parseChatResponse(response: Result<unknown>): Result<{ [key: string]: Json }> {
 
   if (!response.ok) return response;
 
@@ -86,9 +86,9 @@ function traversePath(input: any, path: string[]): any {
  * @param input - The input value to parse as ChatMessage(s).
  * @param path - Optional. An array of keys representing the path on the object where the message(s) reside.
  *               If omitted, the top-level input is assumed to be the message(s).
- * @returns A ChatResult that is either a success with the parsed messages or a failure with an error.
+ * @returns A Result that is either a success with the parsed messages or a failure with an error.
  */
-export function parseChatMessages(input: any, path?: string[]): ChatResult<ChatMessage[]> {
+export function parseChatMessages(input: any, path?: string[]): Result<ChatMessage[]> {
   let target = input;
 
   // If a path is provided, traverse the input to find the messages.
@@ -216,11 +216,11 @@ export function parseChatMessages(input: any, path?: string[]): ChatResult<ChatM
  * Sends a chat request to the OpenAI API.
  *
  * @param payload - The request payload for the OpenAI Chat API.
- * @returns A promise resolving to a ChatResult containing the API response or an enumerated ChatError.
+ * @returns A promise resolving to a Result containing the API response or an enumerated ChatError.
  */
 export async function sendChatRequest(
-  payload: { [key: string]: unknown }
-): Promise<ChatResult<unknown>> {
+  payload: { [key: string]: Json }
+): Promise<Result<unknown>> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return { ok: false, error: { type: "MissingApiKey" } };
