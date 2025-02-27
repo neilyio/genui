@@ -1,8 +1,12 @@
 /* client/src/styles/style.css */
 :root {
     /* All properties from UIChanges: default values */
-    --primary-color: #41403e;
-    --secondary-color: #0b74d5;
+    --primary: #41403e;
+    --secondary: #0b74d5;
+    --success: #86a361;
+    --warning: #ddcd45;
+    --danger: #a7342d;
+    --muted: #868e96;
     --background-color: #ffffff;
     --text-color: #333333;
     --page-bg: #f9fafb;
@@ -45,7 +49,7 @@
     --button-padding: 8px;
     --button-icon-size: 18px;
     --button-icon-color: var(--text-color);
-    --send-button-bg: var(--primary-color);
+    --send-button-bg: var(--primary);
     --send-button-color: #ffffff;
     --attachment-button-bg: var(--input-background);
     --attachment-button-color: var(--text-color);
@@ -61,7 +65,7 @@
     --input-placeholder: var(--text-secondary);
 
     /* Button styling */
-    --button-bg: var(--primary-color);
+    --button-bg: var(--primary);
     --button-text: #ffffff;
 
     /* Message bubbles */
@@ -284,7 +288,7 @@ body {
 }
 
 .creator-info a {
-    color: var(--primary-color);
+    color: var(--primary);
     text-decoration: none;
     font-weight: 500;
     transition: opacity var(--animation-speed) var(--transition-effect);
@@ -564,9 +568,9 @@ body {
 }
 
 .example-pill:hover {
-    background-color: var(--primary-color);
+    background-color: var(--primary);
     color: white;
-    border-color: var(--primary-color);
+    border-color: var(--primary);
 }
 
 @media (max-width: 600px) {
