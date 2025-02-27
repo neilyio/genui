@@ -258,7 +258,7 @@ export async function colorPipeline(contents: ChatMessageContent[]): Promise<Res
   });
 
   const css = await sendPaletteRequest(urls);
-  if (!css.ok) return err(JSON.stringify(css.error));
+  if (!css.ok) return err({ type: "PaletteError", detail: JSON.stringify(css.error) });
 
   return ok({
     imageUrls,
