@@ -543,8 +543,8 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 12px;
-    width: calc(100% + 40px); /* Extend beyond container */
-    margin-left: -20px; /* Center the grid */
+    width: calc(140%); /* Extend beyond container by 20% on each side */
+    margin-left: -20%; /* Center the grid */
     padding: 0;
 }
 
