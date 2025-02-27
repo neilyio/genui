@@ -96,7 +96,7 @@ export async function downsample(
 
     return { ok: true, value: resized };
   } catch (e: any) {
-    return { ok: false, error: { type: `Downsample error: ${String(e)}` } }
+    return { ok: false, error: { type: "DownsampleError", detail: String(e) } };
   }
 }
 
@@ -208,7 +208,7 @@ export async function stitchHorizontallyAlpha(
     const stitched = base.composite(compositeArray).png();
     return ok(stitched);
   } catch (e: any) {
-    return err(`Stitching error: ${String(e)}`);
+    return err({ type: "StitchingError", detail: `Stitching error: ${String(e)}` });
   }
 }
 
