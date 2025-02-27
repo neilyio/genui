@@ -292,9 +292,9 @@ export async function processChatMessageFlow(contents: ChatMessageContent[]): Pr
   if (!css.ok) return err(JSON.stringify(css.error));
 
   return ok({
-    ui_changes: css.value,
     imageUrls,
     base64Images,
     stitchedImage: base64Image,
+    ...css.value
   });
 }

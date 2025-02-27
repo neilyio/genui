@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { buildGoogleFontsUrl, fetchGoogleFontCSS, getFontWeights, parseGoogleFontCSS, sendFontNameRequest, sendFontVarsRequest } from "./fonts";
+import { buildGoogleFontsUrl, executeFontFlow, fetchGoogleFontCSS, getFontWeights, parseGoogleFontCSS, sendFontNameRequest, sendFontVarsRequest } from "./fonts";
 
 // ------------------ TESTS ------------------
 
@@ -20,7 +20,7 @@ describe("Google Font Fetching", () => {
       if (!result.ok) throw result.error;
       expect(result.value).toMatchInlineSnapshot(`
         {
-          "fallback_font_name": "Rajdhani",
+          "fallback_font_name": "Exo",
           "primary_font_name": "Orbitron",
         }
       `);
@@ -29,7 +29,7 @@ describe("Google Font Fetching", () => {
       const fallbackUrl = await buildGoogleFontsUrl(result.value.fallback_font_name?.toString?.() ?? "");
 
       expect(primaryUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Orbitron:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900&display=swap"`);
-      expect(fallbackUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Rajdhani:ital,wght@0,300;0,400;0,500;0,600;0,700&display=swap"`);
+      expect(fallbackUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Exo:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"`);
     }, 10000);
 
     it("should suggest an exotic font for a 'vintage' theme", async () => {
@@ -57,14 +57,23 @@ describe("Google Font Fetching", () => {
       const result = await executeFontFlow(prompt);
       expect(result).toMatchInlineSnapshot(`
         {
-          "css": "/* CSS content here */",
+          "css": 
+        "@font-face {
+          font-family: 'UnifrakturCook';
+          font-style: normal;
+          font-weight: 700;
+          font-display: swap;
+          src: url(https://fonts.gstatic.com/s/unifrakturcook/v23/IurA6Yli8YOdcoky-0PTTdkm56n05Uw1.ttf) format('truetype');
+        }
+        "
+        ,
           "vars": {
-            "header_font_family": "UnifrakturMaguntia",
-            "header_font_weight": "400",
-            "message_font_family": "UnifrakturMaguntia",
-            "message_font_weight": "400",
-            "placeholder_font_family": "UnifrakturMaguntia",
-            "placeholder_font_weight": "400",
+            "header_font_family": "UnifrakturCook",
+            "header_font_weight": "700",
+            "message_font_family": "UnifrakturCook",
+            "message_font_weight": "700",
+            "placeholder_font_family": "UnifrakturCook",
+            "placeholder_font_weight": "700",
           },
         }
       `);

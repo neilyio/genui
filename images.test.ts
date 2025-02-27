@@ -310,13 +310,13 @@ test("color processing flow", async () => {
   expect(base64ImageSizes).toMatchInlineSnapshot(`[]`);
 
   const stitchedImageSize = Buffer.from(result.value.stitchedImage.split(",")[1], 'base64').length;
-  expect(stitchedImageSize).toMatchInlineSnapshot();
+  expect(stitchedImageSize).toMatchInlineSnapshot(`79282`);
 
   expect(result.value.ui_changes).toMatchInlineSnapshot(`
     {
       "ui_changes": {
         "assistant_message_background": "#F2F2F2",
-        "assistant_message_border_color": "#BFBFBF",
+        "assistant_message_border_color": "#B0B0B0",
         "assistant_message_text_color": "#1A1A1A",
         "attachment_button_bg": "#1A4D9B",
         "attachment_button_color": "#FFFFFF",
@@ -330,12 +330,12 @@ test("color processing flow", async () => {
         "input_background": "#E6E6E6",
         "page_bg": "#FFFFFF",
         "primary_color": "#1A4D9B",
-        "secondary_color": "#C72B2B",
-        "send_button_bg": "#C72B2B",
+        "secondary_color": "#C72C2C",
+        "send_button_bg": "#C72C2C",
         "send_button_color": "#FFFFFF",
         "text_color": "#1A1A1A",
-        "user_message_background": "#C72B2B",
-        "user_message_border_color": "#A62828",
+        "user_message_background": "#C72C2C",
+        "user_message_border_color": "#A52A2A",
         "user_message_text_color": "#FFFFFF",
       },
     }

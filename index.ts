@@ -26,17 +26,15 @@ const server = Bun.serve({
 
         const css = fontResult.css;
 
-        const mergedUIChanges = {
-          ...imageResult.value.ui_changes,
-          ...fontResult.ui_changes,
-          css,
-        };
-
         // Ensure the response structure is correct
         return Response.json({
           type: "ui_update",
           content: "DONE!",
-          ...mergedUIChanges
+          ui_changes: {
+            ...imageResult.value.ui_changes,
+            ...fontResult.ui_changes,
+          },
+          css
         });
       }
     }

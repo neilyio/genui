@@ -99,7 +99,7 @@
 
 /* Body references page-bg, text-primary, etc. */
 body {
-    font-family: var(--font-family);
+    font-family: var(--message-font-family);
     background-color: var(--page-bg);
     color: var(--text-primary);
     display: flex;

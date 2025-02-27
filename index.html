@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+  <!-- Favicon -->
+  <!-- <link rel="icon" type="image/x-icon" href="favicon/favicon.ico" /> -->
+  <!-- <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png" /> -->
+  <!-- <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png" /> -->
+  <!-- <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png" /> -->
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://gen-ui.replit.app/" />
+  <meta property="og:title" content="Self Generating UI" />
+  <meta property="og:description"
+    content="An AI-powered interface that generates and modifies its own user interface in real-time." />
+  <meta property="og:image" content="https://gen-ui.replit.app/social/og-image.png" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="https://gen-ui.replit.app/" />
+  <meta property="twitter:title" content="Self Generating UI" />
+  <meta property="twitter:description"
+    content="An AI-powered interface that generates and modifies its own user interface in real-time." />
+  <meta property="twitter:image" content="https://gen-ui.replit.app/social/twitter-card.png" />
+
+  <title>Self Generating UI</title>
+  <link rel="stylesheet" href="styles/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+</head>
+
+<body>
+  <div id="chat-container">
+    <div id="chat-header">
+      Self Generating UI
+      <div class="header-buttons">
+        <button id="new-chat-button" class="new-chat-button" aria-label="Start new chat">
+          <i class="fas fa-plus"></i>
+          New Chat
+        </button>
+        <button id="info-button" aria-label="Information">
+          <i class="fas fa-info-circle"></i>
+        </button>
+      </div>
+    </div>
+    <div id="messages-container">
+      <div class="empty-state">
+        <div class="empty-state-avatar">👨‍🎨</div>
+        <div class="empty-state-greeting">Good morning!</div>
+        <div class="empty-state-examples">
+          <div class="example-pill">
+            Make it look like a Mario theme 🍄
+          </div>
+          <div class="example-pill">Change to dark mode 🌙</div>
+          <div class="example-pill">
+            Make it calm and peaceful 🌿
+          </div>
+          <div class="example-pill">
+            Make it look like Windows 98 🖥️
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="input-container">
+      <div class="textarea-wrapper">
+        <button id="attachment-button" class="attachment-button" aria-label="Attach image">
+          <i class="fas fa-image"></i>
+        </button>
+        <textarea id="message-input" placeholder="Ask me to change the theme, colors, or style..." rows="1"
+          autocomplete="off"></textarea>
+        <button id="send-button">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+        <input type="file" id="image-input" accept="image/png, image/jpeg, image/jpg, image/webp, image/gif"
+          style="display: none" />
+      </div>
+    </div>
+  </div>
+
+  <div id="info-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>About</h2>
+        <button class="close-modal">×</button>
+      </div>
+      <div class="modal-body">
+        <p>
+          This AI-powered interface automatically generates and
+          modifies its appearance in real-time. You can:
+        </p>
+        <ul>
+          <li>Change colors, themes, and styles</li>
+          <li>Modify layouts and spacing</li>
+          <li>Adjust animations and transitions</li>
+          <li>Upload images for visual context</li>
+        </ul>
+        <p>
+          Simply describe what you'd like to change, and watch as
+          the interface transforms based on your requests!
+        </p>
+        <hr class="modal-divider" />
+        <div class="creator-info">
+          <p>
+            Created by
+            <a href="https://twitter.com/skirano" target="_blank" rel="noopener noreferrer">Skirano</a>
+          </p>
+          <p>
+            Interested in the technology?
+            <a href="mailto:pietro.schirano@gmail.com">Reach out!</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/script.js" type="module"></script>
+</body>
+
+</html>
