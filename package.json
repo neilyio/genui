@@ -13,6 +13,9 @@
   "peerDependencies": {
     "typescript": "^5"
   },
+  "scripts": {
+    "dev": "bun --watch src/index.ts"
+  },
   "dependencies": {
     "colorthief": "^2.6.0",
     "ml-kmeans": "^6.0.0",
