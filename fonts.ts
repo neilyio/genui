@@ -1,9 +1,8 @@
+import type { Result, Json } from "./utils.ts";
 import {
   sendChatRequest,
   parseChatResponse,
-  type Result,
   type ChatMessage,
-  type Json,
 } from "./chat.js";
 import config from "./config.toml";
 
@@ -284,7 +283,7 @@ function chatPayload({
  */
 export async function sendFontNameRequest(
   prompt: string
-): Promise<ChatResult<{ [key: string]: Json }>> {
+): Promise<Result<{ [key: string]: Json }>> {
   // Prepare your messages (system + user)
   const messages: ChatMessage[] = [
     {
@@ -330,7 +329,7 @@ export async function sendFontNameRequest(
  */
 export async function sendFontVarsRequest(
   fontString: string
-): Promise<ChatResult<{ [key: string]: Json }>> {
+): Promise<Result<{ [key: string]: Json }>> {
   const messages: ChatMessage[] = [
     {
       role: "system",
