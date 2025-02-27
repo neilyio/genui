@@ -6,7 +6,7 @@
 import { JSDOM } from 'jsdom';
 import sharp from 'sharp';
 import { sendPaletteRequest } from "./all";
-import { Result } from "./result.ts";
+import type { Result } from "./utils.ts";
 import type { ChatMessageContent } from "./chat";
 
 export async function scrapeBingImages(searchTerm: string, numResults = 10): Promise<string[]> {
@@ -66,13 +66,13 @@ export async function fetchToBase64(url: string): Promise<string> {
 export async function downsample(
   buffer: Buffer,
   maxDimension: number
-): Promise<ImageResult<Buffer>> {
+): Promise<Result<Buffer>> {
   try {
     const image = sharp(buffer);
     const metadata = await image.metadata();
 
     if (!metadata.width || !metadata.height) {
-      return { ok: false, error: { type: "Missing metadata (width/height)." } }
+      return { ok: false, error: { type: "MissingMetadata", detail: "(width/height)" } }
     }
 
     // only downsample if it's bigger than maxdimension
@@ -99,17 +99,6 @@ export async function downsample(
   }
 }
 
-type ResultOk<T> = { ok: true; value: T };
-type ResultErr = { ok: false; error: string };
-type Result<T> = ResultOk<T> | ResultErr;
-
-function ok<T>(value: T): ResultOk<T> {
-  return { ok: true, value };
-}
-
-function err(message: string): ResultErr {
-  return { ok: false, error: message };
-}
 
 async function fetchImageBuffer(url: string): Promise<Result<Buffer>> {
   try {
