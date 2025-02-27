@@ -1,92 +1,84 @@
 /* client/src/styles/style.css */
 :root {
-    /* All properties from UIChanges: default values */
-    --primary: #5d4037;
-    --secondary: #8d6e63;
-    --success: #a1887f;
-    --warning: #d7ccc8;
-    --danger: #bcaaa4;
-    --muted: #d7ccc8;
-    --background-color: #f5f5f5;
-    --text-color: #4e342e;
-    --page-bg: #efebe9;
+    /* Color palette with a soft, textured paper feel */
+    --primary: #795548; /* Warm brown ink */
+    --secondary: #a1887f; /* Faded pencil */
+    --success: #b0a395; /* Aged parchment */
+    --warning: #ede0d4; /* Warm paper yellow */
+    --danger: #d7ccc8; /* Coffee stain */
+    --muted: #eae7dc; /* Soft off-white */
+    --background-color: #faf3e0; /* Aged paper */
+    --text-color: #5c4033; /* Deep brown ink */
+    --page-bg: #f8f1e8; /* Handwritten journal paper */
+    --info-button-color: #bfa58a;
+
+    /* Bubble appearance */
     --bubble-size: auto;
-    --bubble-padding: 12px;
-    --bubble-radius: 8px;
-    --bubble-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    --bubble-padding: 14px;
+    --bubble-radius: 12px;
+    --bubble-shadow: 2px 2px 6px rgba(0, 0, 0, 0.1);
     --bubble-max-width: 75%;
-    --font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Open Sans", "Noto Sans", Roboto, Ubuntu, "Helvetica Neue", Arial, sans-serif;
-    --font-size: 15px;
-    --line-height: 1.5;
-    --spacing: 8px;
-    --chat-container-max-width: 680px;
-    --animation-speed: 0.3s;
-    --transition-effect: ease;
-    --assistant-message-background: #f9fafb;
 
-    /* Border properties */
-    --border-width: 1px;
-    --border-style: solid;
-    --border-color: #e5e7eb;
-    --global-border-radius: 8px;
-    --user-message-border-color: #bbe2ca;
-    --assistant-message-border-color: #e5e7eb;
+    /* Typography with a hand-drawn feel */
+    --font-family: "Patrick Hand", "Comic Sans MS", "Segoe Print", cursive, sans-serif;
+    --font-size: 16px;
+    --line-height: 1.6;
+    --spacing: 10px;
 
-    /* Input, Chat, and Header specific colors */
-    --input-background: #ffffff;
-    --chat-background: #ffffff;
-    --header-background: #ffffff;
-    --header-text-color: #41403e;
+    /* Chat layout */
+    --chat-container-max-width: 720px;
+    --animation-speed: 0.4s;
+    --transition-effect: ease-in-out;
 
-    /* Message specific properties */
-    --user-message-background: #dcfce7;
-    --user-message-text-color: #41403e;
-    --assistant-message-text-color: #333333;
-    --message-margin-bottom: 20px;
+    /* Message aesthetics */
+    --assistant-message-background: #f9f6f2; /* Subtle off-white */
+    --assistant-message-text-color: #4e342e;
+    --user-message-background: #efe8dc; /* Warm paper with slight tint */
+    --user-message-text-color: #4e342e;
+    --message-margin-bottom: 24px;
 
-    /* Button properties */
-    --button-size: 35px;
-    --button-padding: 8px;
-    --button-icon-size: 18px;
-    --button-icon-color: var(--text-color);
+    /* Borders and strokes */
+    --border-width: 2px;
+    --border-style: dashed; /* Gives a sketchy, hand-drawn look */
+    --border-color: #bfa58a;
+    --global-border-radius: 10px;
+    --user-message-border-color: #cdbba7;
+    --assistant-message-border-color: #dfd3c3;
+
+    /* Input & button styles */
+    --input-background: #faf3e0;
+    --chat-background: #fffaf3;
+    --header-background: #f4e7d3;
+    --header-text-color: #6d4c41;
+    --input-border: #cdbba7;
+    --input-text: var(--text-color);
+    --input-placeholder: #9e9081;
+    --button-bg: var(--primary);
+    --button-text: #fff;
     --send-button-bg: var(--primary);
-    --send-button-color: #ffffff;
+    --send-button-color: #fff;
     --attachment-button-bg: var(--input-background);
     --attachment-button-color: var(--text-color);
-    --info-button-color: var(--header-text-color);
 
-    --page-bg: #f9fafb;
-    --text-primary: var(--text-color);
-    --text-secondary: #6b7280;
+    /* Shadows for a more organic depth */
+    --container-shadow: 3px 3px 8px rgba(0, 0, 0, 0.15);
+    --bubble-shadow: 2px 2px 6px rgba(0, 0, 0, 0.1);
 
-    /* Input styling */
-    --input-border: #e5e7eb;
-    --input-text: var(--text-primary);
-    --input-placeholder: var(--text-secondary);
-
-    /* Button styling */
-    --button-bg: var(--primary);
-    --button-text: #ffffff;
-
-    /* Message bubbles */
+    /* Message bubble details */
     --user-message-bg: var(--user-message-background);
     --assistant-message-bg: var(--assistant-message-background);
-    --bubble-shadow: var(--bubble-shadow);
 
-    /* Container styling */
-    --container-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    --container-border-radius: 12px;
-
-    /* Spacing for messages, etc. */
+    /* Spacing for natural flow */
     --message-padding: var(--bubble-padding);
     --message-max-width: var(--bubble-max-width);
     --message-line-height: var(--line-height);
 
-    --header-font-family: "Comic Sans MS", "Comic Sans", cursive;
+    /* Handwritten fonts for a cozy, sketched feel */
+    --header-font-family: "Patrick Hand", "Comic Sans MS", cursive;
     --header-font-weight: 700;
-    --message-font-family: "Comic Sans MS", "Comic Sans", cursive;
+    --message-font-family: "Patrick Hand", "Comic Sans MS", cursive;
     --message-font-weight: 400;
-    --placeholder-font-family: "Comic Sans MS", "Comic Sans", cursive;
+    --placeholder-font-family: "Patrick Hand", "Comic Sans MS", cursive;
     --placeholder-font-weight: 400;
 }
 
@@ -550,13 +542,14 @@ body {
 .empty-state-examples {
     display: flex;
     flex-wrap: wrap;
+    width: 100%;
     gap: 12px;
     justify-content: center;
-    max-width: 600px;
     padding: 0 20px;
 }
 
 .example-pill {
+    opacity: 0.8;
     background-color: var(--assistant-message-background);
     color: var(--text-color);
     padding: 12px 20px;
