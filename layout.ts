@@ -1,5 +1,6 @@
-import { sendChatRequest, parseChatResponse, type Result, type ChatMessage, type Json } from "./chat.js";
+import { sendChatRequest, parseChatResponse, type ChatMessage } from "./chat.js";
 import config from "./config.toml";
+import type { Json } from "./utils.js";
 
 /**
  * Sends a request to the chat model to determine layout variables based on a theme prompt.
