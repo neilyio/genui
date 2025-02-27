@@ -99,13 +99,6 @@ export async function downsample(
   }
 }
 
-function ok<T>(value: T): ResultOk<T> {
-  return { ok: true, value };
-}
-
-function err(message: string): ResultErr {
-  return { ok: false, error: message };
-}
 
 async function fetchImageBuffer(url: string): Promise<Result<Buffer>> {
   try {
