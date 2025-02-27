@@ -14,7 +14,7 @@ export async function textPipeline(theme: string): Promise<string> {
       content: [
         {
           type: "text",
-          text: "Generate a playful and friendly response message with puns and jokes based on the theme.",
+          text: config.prompt.chat,
         },
       ],
     },
@@ -53,5 +53,5 @@ export async function textPipeline(theme: string): Promise<string> {
   const result = await sendChatRequest(payload).then(parseChatResponse);
   if (!result.ok) throw result.error;
 
-  return result.value.response;
+  return result.value.response?.toString?.() ?? "";
 }
