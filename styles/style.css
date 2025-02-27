@@ -561,9 +561,6 @@ body {
     transition: all var(--animation-speed) var(--transition-effect);
     white-space: nowrap; /* Prevent text wrapping */
     width: auto; /* Allow pill to scale based on text */
-    max-width: 100%; /* Ensure pill does not overflow */
-    overflow: hidden; /* Hide overflow text */
-    text-overflow: ellipsis; /* Add ellipsis for overflow text */
 }
 
 .example-pill:hover {
