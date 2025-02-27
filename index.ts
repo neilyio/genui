@@ -26,7 +26,7 @@ const server = Bun.serve({
 
         if (!imageResult.ok) throw new Error(`Image processing failed: ${imageResult.error}`);
         if (!fontResult) throw new Error(`Font processing failed`);
-        if (!layoutResult) throw new Error(`Layout processing failed`);
+        if (!layoutResult.ok) throw new Error(`Layout processing failed: ${layoutResult.error}`);
 
         // Ensure the response structure is correct
         return Response.json({

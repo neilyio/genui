@@ -1,4 +1,4 @@
-import { sendChatRequest, parseChatResponse, type ChatMessage } from "./chat.js";
+import { sendChatRequest, parseChatResponse, type ChatMessage, type Result } from "./chat.js";
 import config from "./config.toml";
 import type { Json } from "./utils.js";
 
@@ -6,9 +6,9 @@ import type { Json } from "./utils.js";
  * Sends a request to the chat model to determine layout variables based on a theme prompt.
  * 
  * @param prompt - The theme prompt for which layout variables are desired.
- * @returns {Promise<{ [key: string]: Json }>} - A promise resolving to the layout variables.
+ * @returns {Promise<Result<{ [key: string]: Json }>>} - A promise resolving to the layout variables.
  */
-export async function layoutPipeline(prompt: string): Promise<{ [key: string]: Json }> {
+export async function layoutPipeline(prompt: string): Promise<Result<{ [key: string]: Json }>> {
   const messages: ChatMessage[] = [
     {
       role: "system",
@@ -76,7 +76,5 @@ export async function layoutPipeline(prompt: string): Promise<{ [key: string]: J
   };
 
   const result = await sendChatRequest(payload).then(parseChatResponse);
-  if (!result.ok) throw result.error;
-
-  return result.value;
+  return result;
 }
