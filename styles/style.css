@@ -560,7 +560,9 @@ body {
     border: 1px solid var(--border-color);
     transition: all var(--animation-speed) var(--transition-effect);
     white-space: nowrap; /* Prevent text wrapping */
-    width: auto; /* Allow pill to scale based on text */
+    display: inline-block; /* Allow pill to scale based on text */
+    overflow: hidden; /* Prevent text overflow */
+    text-overflow: ellipsis; /* Add ellipsis for overflow text */
 }
 
 .example-pill:hover {
