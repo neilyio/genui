@@ -317,7 +317,7 @@ export async function sendFontNameRequest(
   });
 
   // Send the request, parse the response, and return the font names
-  return sendChatRequest(payload).then(parseChatResponse);
+  return sendChatRequest(payload as { [key: string]: Json }).then(parseChatResponse);
 }
 
 
@@ -366,5 +366,5 @@ export async function sendFontVarsRequest(
   });
 
   // Send the request, parse the response, and return the font variables
-  return sendChatRequest(payload).then(parseChatResponse);
+  return sendChatRequest(payload as { [key: string]: Json }).then(parseChatResponse);
 }

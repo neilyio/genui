@@ -44,13 +44,7 @@ const CSS_VAR_MAP = {
   info_button_color: "--info-button-color",
 };
 
-export function updateTheme(changes, css) {
-  if (css) {
-    const styleElement = document.createElement('style');
-    styleElement.type = 'text/css';
-    styleElement.appendChild(document.createTextNode(css));
-    document.head.appendChild(styleElement);
-  }
+export function updateTheme(changes) {
   if (!changes) return;
 
   const root = document.documentElement;
@@ -76,7 +70,15 @@ export function updateTheme(changes, css) {
 
   fontProperties.forEach(prop => {
     if (changes[prop]) {
-      root.style.setProperty(`--${prop.replace(/_/g, '-')}`, changes[prop]);
+      const cssVarName = `--${prop.replace(/_/g, '-')}`;
+      let cssVarValue = changes[prop];
+
+      // If it's a font-family property, wrap in single quotes
+      if (cssVarName.includes("font-family")) {
+        cssVarValue = `'${cssVarValue}'`;
+      }
+
+      root.style.setProperty(cssVarName, cssVarValue);
     }
   });
 

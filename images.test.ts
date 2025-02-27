@@ -1,5 +1,5 @@
 import { test, expect } from "bun:test";
-import { downsample, processChatMessageFlow, scrapeBingImages, stitchHorizontallyAlpha } from "./images";
+import { colorPipeline, downsample, scrapeBingImages, stitchHorizontally } from "./images";
 import sharp from 'sharp';
 import { Vibrant } from "node-vibrant/node";
 import { sendPaletteRequest } from "./all";
@@ -16,7 +16,6 @@ test.skip("searches bing", async () => {
     ]
   `);
 
-  const urlStats = [];
   let promises = urls.map(async (url: any, i: number) => {
     const resp = await Bun.fetch(url);
     const arrayBuffer = await resp.arrayBuffer();
@@ -58,48 +57,6 @@ test.skip("fetch color palette reference", async () => {
   ];
   expect(`${hexs}`).toMatchInlineSnapshot(`"#f4d45c,#5484a4,#7c6308,#2c3444,#f6de82,#b4b470"`);
 });
-
-type ResultOk<T> = { ok: true; value: T };
-type ResultErr = { ok: false; error: string };
-type Result<T> = ResultOk<T> | ResultErr;
-
-function ok<T>(value: T): ResultOk<T> {
-  return { ok: true, value };
-}
-
-function err(message: string): ResultErr {
-  return { ok: false, error: message };
-}
-
-async function fetchImageBuffer(url: string): Promise<Result<Buffer>> {
-  try {
-    const response = await Bun.fetch(url);
-    if (!response.ok) {
-      return err(`Fetch failed for ${url}, status: ${response.status}`);
-    }
-
-    const arrayBuf = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuf);
-    return ok(buffer);
-  } catch (e: any) {
-    return err(`Error fetching ${url}: ${String(e)}`);
-  }
-}
-
-async function stretchToSize(
-  buffer: Buffer,
-  width: number,
-  height: number
-): Promise<Result<Buffer>> {
-  try {
-    const resized = await sharp(buffer)
-      .resize(width, height, { fit: "fill" }) // force squashing/stretching
-      .toBuffer();
-    return ok(resized);
-  } catch (e: any) {
-    return err(`Stretch error: ${String(e)}`);
-  }
-}
 
 export function removeLightnessOutlier(
   dataset: any[],
@@ -199,7 +156,7 @@ test.skip("stitch color palettes from 10 URLs", async () => {
   const composite = await sharpComposite(swatches);
   const buffer = await composite.png().toBuffer();
   const palette = await Vibrant.from(buffer).getPalette();
-  const final = await sharpComposite([
+  await sharpComposite([
     palette.Vibrant,
     palette.Muted,
     palette.DarkVibrant,
@@ -237,7 +194,7 @@ test.skip("combine to one and gpt analyze", async () => {
         .map((r) => r.value)
     );
 
-  const stitchedResult = await stitchHorizontallyAlpha(buffers);
+  const stitchedResult = await stitchHorizontally(buffers);
   if (!stitchedResult.ok) throw stitchedResult.error;
 
   const stitchedBuffer = await stitchedResult.value.toBuffer();
@@ -287,7 +244,7 @@ test("color processing flow", async () => {
     { type: "text", text: "superman color palette" }
   ];
 
-  const result = await processChatMessageFlow(contents);
+  const result = await colorPipeline(contents);
 
   if (!result.ok) {
     throw new Error(`Flow processing failed: ${result.error}`);
@@ -302,7 +259,7 @@ test("color processing flow", async () => {
     ]
   `);
 
-  const base64ImageSizes = result.value.base64Images.map(img => {
+  const base64ImageSizes = result.value.base64Images.map((img: any) => {
     const base64Data = img.split(",")[1];
     return Buffer.from(base64Data, 'base64').length;
   });

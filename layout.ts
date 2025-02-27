@@ -8,7 +8,7 @@ import type { Json, Result } from "./utils.js";
  * @param prompt - The theme prompt for which layout variables are desired.
  * @returns {Promise<Result<{ ui_changes: { [key: string]: Json } }>>} - A promise resolving to the layout variables.
  */
-export async function layoutPipeline(prompt: string): Promise<Result<{ [key: string]: Json }>> {
+export async function layoutPipeline(prompt: string): Promise<Result<{ ui_changes: { [key: string]: Json } }>> {
   const messages: ChatMessage[] = [
     {
       role: "system",
@@ -75,7 +75,7 @@ export async function layoutPipeline(prompt: string): Promise<Result<{ [key: str
     },
   };
 
-  return await sendChatRequest(payload).then(response => {
+  return await sendChatRequest(payload as unknown as { [key: string]: Json }).then(response => {
     if (!response.ok) return response;
     return { ok: true, value: { ui_changes: response.value as { [key: string]: Json } } };
   });

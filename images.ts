@@ -7,15 +7,13 @@ import { JSDOM } from 'jsdom';
 import sharp from 'sharp';
 import {
   sendChatRequest,
-  type Result,
-  type ChatPayload,
   type Json,
   type ChatMessage,
   parseChatResponse,
   type ChatMessageContent,
 } from "./chat.js";
 import config from "./config.toml";
-import { fetchToBase64 } from "./images.js";
+import { err, ok, type Result } from './utils.js';
 
 const MODEL = config.model;
 const COLOR_PROPERTIES = Object
@@ -30,7 +28,7 @@ function chatPayload(
   { name, messages, properties }:
     {
       name: string,
-      messages: ChatMessage[] as unknown as Json,
+      messages: ChatMessage[],
       properties: {
         [key: string]: Json
       }
@@ -40,7 +38,7 @@ function chatPayload(
   return {
     model: MODEL,
     temperature: 0,
-    messages,
+    messages: messages as unknown as { [key: string]: Json },
     response_format: {
       type: "json_schema",
       json_schema: {
@@ -100,11 +98,8 @@ export async function sendPaletteRequest(contents: ChatMessageContent[]):
   })
 
   return await sendChatRequest(payload as { [key: string]: Json }).then(parseChatResponse)
-    .then((p: Result<{ ui_changes: Json }>) => p.ok ? { ok: true, value: { ui_changes: p.value["ui_changes"] } } : p);
+    .then((p) => p.ok ? { ok: true, value: { ui_changes: p.value["ui_changes"] } } : p);
 }
-import { err, ok } from "./utils.ts";
-import type { Result } from "./utils.ts";
-import type { ChatMessageContent } from "./chat";
 
 export async function scrapeBingImages(searchTerm: string, numResults = 10): Promise<string[]> {
   try {

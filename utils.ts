@@ -14,6 +14,8 @@ export type AppError =
   | { type: "FetchError"; detail: string }
   | { type: "NoResponseContent" }
   | { type: "InvalidResponseJson" }
+  | { type: "PaletteError"; detail: string }
+  | { type: "InvalidImageUrl"; detail: string }
   | { type: "InvalidChatMessages"; detail: string }
   | { type: "MissingMetadata"; detail: string }
   | { type: "DownsampleError"; detail: string }
@@ -27,6 +29,7 @@ export type AppError =
 export type Result<T> =
   | { ok: true; value: T }
   | { ok: false; error: AppError };
+
 export function ok<T>(value: T): Result<T> {
   return { ok: true, value };
 }
