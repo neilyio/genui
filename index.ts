@@ -16,12 +16,13 @@ const server = Bun.serve({
 
         const latest = messages.value[messages.value.length - 1];
 
+        const latestTextContent = latest.content.map(c => c.type === "text" ? c.text : "").join(" ");
         const processedLatest = await preprocessPipeline(latest);
         const [imageResult, fontResult, layoutResult, textResult] = await Promise.all([
           colorPipeline(processedLatest.content),
-          fontPipeline(latest.content.map(c => c.type === "text" ? c.text : "").join(" ")),
-          layoutPipeline(latest.content.map(c => c.type === "text" ? c.text : "").join(" ")),
-          textPipeline(latest.content.map(c => c.type === "text" ? c.text : "").join(" "))
+          fontPipeline(latestTextContent),
+          layoutPipeline(latestTextContent),
+          textPipeline(latestTextContent)
         ]);
 
         if (!imageResult.ok) throw new Error(`Image processing failed: ${imageResult.error}`);
