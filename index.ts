@@ -41,8 +41,8 @@ const server = Bun.serve({
             ...imageResult.value.ui_changes,
             ...fontResult.ui_changes,
             ...layoutResult,
-            css
-          }
+          },
+          css
         });
       }
     }
