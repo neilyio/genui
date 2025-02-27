@@ -4,7 +4,14 @@
 
 1. Install [Bun](https://bun.sh/docs/installation).
 ```bash
+# curl
 curl -fsSL https://bun.sh/install | bash
+
+# brew
+brew install oven-sh/bun/bun 
+
+# npm
+npm install -g bun
 ```
 2. Make sure you have the latest version.
 ```bash
@@ -49,12 +56,12 @@ Splitting the work into multiple pipelines lets us pass more refined system prom
 
 ## Development notes
 - I attempted to accomplish as much as possible without dependencies. We rely only on `JSDOM` and `sharp` for scraping the images from Bing search results.
-- Snapshot testing with `jest` is a major part of my development workflow. These are not always appropriate to commit, but I've left them here for discussion purposes.
-- I made an initial attempt to avoid interaction with a vision model altogether, given its the most time-consuming part of the pipeline. I found aggregating colors from Bing delievered more accurate colors results than just asking an LLM to guess palettes. I initially attempted color extraction with `colorthief` and `node-vibrant`, but found that given a collage of photos, a vision model did a reasonable job of extracting a palette and making intelligent color assignments. I do believe this can/should be accomplished algorithmically, but this was a good trade-off for development speed. 
+- Snapshot testing with `jest` is a major part of my development workflow. These are not always appropriate to commit, but I've left the snapshot tests here for discussion purposes.
+- I made an initial attempt to avoid interaction with a vision model altogether given its the most time-consuming part of the pipeline. I found aggregating colors from Bing delievered more accurate colors results than just asking an LLM to guess palettes. I initially attempted color extraction with `colorthief` and `node-vibrant`, but found that given a collage of photos, a vision model did a reasonable job of extracting a palette and making intelligent color assignments. I do believe this can/should be accomplished algorithmically with a rules engine, but this was a good trade-off for development speed. 
 
 ## Potential Improvement
 
-1. Implement a rules engine as a post-processing step in the `colorPipeline`. The LLM has instructions to keep colors from clashing, but a verification system could more reliably elimate color problems on adjacent elements.
+1. Implement a rules engine as a post-processing step in the `colorPipeline`. The LLM has instructions to keep colors from clashing, but a verification system could more reliably eliminate color problems on adjacent elements.
 2. A cache database could maintain a history of queries with the UI calculation ready to immediately return. We already have a `preprocessPipeline` where an agent extracts keywords from a user prompt. We could use those keywords as a cache key to save trips to the `colorPipeline` and the `fontsPipeline`.
 3. The user should be able to query by image, not just text prompt. This is very nearly ready to go, as we're already using a vision model in the `colorPipeline`. We'd just need to forward the user's image instead of searching Bing.
 4. A websocket from the server could stream UI updates as they become available, instead of needing to wait for all the pipelines to finish. 
