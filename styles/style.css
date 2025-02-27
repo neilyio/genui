@@ -544,9 +544,9 @@ body {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 12px;
     width: 140%; /* Extend beyond container by 20% on each side */
-    margin: 0 auto; /* Center the grid */
+    margin-left: -20%; /* Center the grid */
     padding: 0;
-    overflow: hidden; /* Prevent horizontal scrollbar */
+    overflow-x: hidden; /* Prevent horizontal scrollbar */
 }
 
 .example-pill {
