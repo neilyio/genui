@@ -1,6 +1,6 @@
 import {
   sendChatRequest,
-  type ChatResult,
+  type Result,
   type ChatPayload,
   type Json,
   type ChatMessage,
@@ -95,5 +95,5 @@ export async function sendPaletteRequest(contents: ChatMessageContent[]):
   })
 
   return await sendChatRequest(payload).then(parseChatResponse)
-    .then(p => p.ok ? { ok: true, value: { ui_changes: p.value["ui_changes"] } } : p);
+    .then((p: Result<{ ui_changes: Json }>) => p.ok ? { ok: true, value: { ui_changes: p.value["ui_changes"] } } : p);
 }

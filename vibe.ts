@@ -1,6 +1,6 @@
 import {
   sendChatRequest,
-  type ChatResult,
+  type Result,
   type ChatPayload,
   type Json,
   type ChatMessage,

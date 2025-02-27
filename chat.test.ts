@@ -1,6 +1,6 @@
 // chat.test.ts
 
-import { sendChatRequest, type ChatPayload, type ChatResult } from "./chat";
+import { sendChatRequest, type ChatPayload, type Result } from "./chat";
 import { describe, expect, it, beforeEach, afterEach } from "bun:test";
 
 // Save the original fetch and API key.

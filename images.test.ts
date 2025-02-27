@@ -25,7 +25,7 @@ test.skip("searches bing", async () => {
 
   const results =
     (await Promise.allSettled(promises))
-      .filter(r => r.status === "fulfilled")
+      .filter((r): r is PromiseFulfilledResult<string> => r.status === "fulfilled")
       .map(r => r.value);
 
   expect(results).toMatchInlineSnapshot(`
