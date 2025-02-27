@@ -4,24 +4,20 @@ import config from "./config.toml";
 /**
  * Preprocesses chat messages to extract keywords from user input.
  * 
- * @param messages - An array of ChatMessage objects.
- * @returns {Promise<ChatMessage[]>} - A promise resolving to a new array of ChatMessage objects with text replaced by keywords.
+ * @param message - A single ChatMessage object.
+ * @returns {Promise<ChatMessage>} - A promise resolving to a new ChatMessage object with text replaced by keywords.
  */
-export async function preprocessPipeline(messages: ChatMessage[]): Promise<ChatMessage[]> {
-  const processedMessages: ChatMessage[] = await Promise.all(messages.map(async (message) => {
-    if (message.role === "user") {
-      const keywordsResult = await extractKeywords(message.content.map(c => c.type === "text" ? c.text : "").join(" "));
-      if (!keywordsResult.ok) throw keywordsResult.error;
+export async function preprocessPipeline(message: ChatMessage): Promise<ChatMessage> {
+  if (message.role === "user") {
+    const keywordsResult = await extractKeywords(message.content.map(c => c.type === "text" ? c.text : "").join(" "));
+    if (!keywordsResult.ok) throw keywordsResult.error;
 
-      return {
-        ...message,
-        content: [{ type: "text", text: keywordsResult.value.keywords?.toString?.() ?? "" }]
-      };
-    }
-    return message;
-  }));
-
-  return processedMessages;
+    return {
+      ...message,
+      content: [{ type: "text", text: keywordsResult.value.keywords?.toString?.() ?? "" }]
+    };
+  }
+  return message;
 }
 
 /**
