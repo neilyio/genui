@@ -77,6 +77,6 @@ export async function layoutPipeline(prompt: string): Promise<Result<{ [key: str
 
   return await sendChatRequest(payload).then(response => {
     if (!response.ok) return response;
-    return { ok: true, value: { ui_changes: response.value as Json } };
+    return { ok: true, value: { ui_changes: response.value as { [key: string]: Json } } };
   });
 }
