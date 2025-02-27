@@ -6,6 +6,7 @@
 import { JSDOM } from 'jsdom';
 import sharp from 'sharp';
 import { sendPaletteRequest } from "./all";
+import { err, ok } from "./utils.ts";
 import type { Result } from "./utils.ts";
 import type { ChatMessageContent } from "./chat";
 
