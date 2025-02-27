@@ -12,12 +12,15 @@ const server = Bun.serve({
     "/api/chat": {
       POST: async req => {
         const messages = parseChatMessages(await req.json(), ["messages"]);
-        if (!messages.ok) {
+        const handleError = (error: any, context: string) => {
+          const errorMessage = error ? `: ${JSON.stringify(error)}` : "";
           return Response.json({
             type: "error",
-            content: `Oops! Something went wrong: ${JSON.stringify(messages.error)}. If only LLMs could code, they'd fix it for us!`,
+            content: `Oops! ${context} failed${errorMessage}. If only LLMs could code, they'd fix it for us!`,
           });
-        }
+        };
+
+        if (!messages.ok) return handleError(messages.error, "Message parsing");
 
         const latest = messages.value[messages.value.length - 1];
         const latestContent = latest.content.map(c => c.type === "text" ? c.text : "").join(" ");
@@ -29,26 +32,10 @@ const server = Bun.serve({
           textPipeline(latestContent)
         ]);
 
-        if (!imageResult.ok) {
-          return Response.json({
-            type: "error",
-            content: `Oops! Image processing failed: ${imageResult.error}. If only LLMs could code, they'd fix it for us!`,
-          });
-        }
-        if (!fontResult) {
-          return Response.json({
-            type: "error",
-            content: `Oops! Font processing failed. If only LLMs could code, they'd fix it for us!`,
-          });
-        }
-        if (!layoutResult) {
-          return Response.json({
-            type: "error",
-            content: `Oops! Layout processing failed. If only LLMs could code, they'd fix it for us!`,
-          });
-        }
+        if (!imageResult.ok) return handleError(imageResult.error, "Image processing");
+        if (!fontResult) return handleError(null, "Font processing");
+        if (!layoutResult) return handleError(null, "Layout processing");
 
-        // Ensure the response structure is correct
         return Response.json({
           type: "ui_update",
           content: textResult,
