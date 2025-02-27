@@ -4,7 +4,7 @@ import {
   parseChatResponse,
   type ChatMessage,
 } from "./chat.js";
-import config from "./config.toml";
+import config from "../config.toml";
 
 /**
  * Simple Result Type for "railroad-oriented" style returns.

@@ -12,7 +12,7 @@ import {
   parseChatResponse,
   type ChatMessageContent,
 } from "./chat.js";
-import config from "./config.toml";
+import config from "../config.toml";
 import { err, ok, type Result } from './utils.js';
 
 const MODEL = config.model;

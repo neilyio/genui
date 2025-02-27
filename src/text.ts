@@ -1,7 +1,7 @@
 import { sendChatRequest, parseChatResponse, type Result, type ChatMessage, type Json } from "./chat.js";
 
 export type { Result, Json };
-import config from "./config.toml";
+import config from "../config.toml";
 
 /**
  * Generates a playful and friendly response message with puns and jokes.

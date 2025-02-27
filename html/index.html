@@ -1,9 +1,9 @@
-// Bun Snapshot v1, https://goo.gl/fbAQLP
+<!doctype html>
+<html lang="en">
 
-exports[`dom test 1`] = `
-"<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 
   <!-- Favicon -->
   <!-- <link rel="icon" type="image/x-icon" href="favicon/favicon.ico" /> -->
@@ -12,22 +12,24 @@ exports[`dom test 1`] = `
   <!-- <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png" /> -->
 
   <!-- Open Graph / Facebook -->
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://gen-ui.replit.app/">
-  <meta property="og:title" content="Self Generating UI">
-  <meta property="og:description" content="An AI-powered interface that generates and modifies its own user interface in real-time.">
-  <meta property="og:image" content="https://gen-ui.replit.app/social/og-image.png">
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://gen-ui.replit.app/" />
+  <meta property="og:title" content="Self Generating UI" />
+  <meta property="og:description"
+    content="An AI-powered interface that generates and modifies its own user interface in real-time." />
+  <meta property="og:image" content="https://gen-ui.replit.app/social/og-image.png" />
 
   <!-- Twitter -->
-  <meta property="twitter:card" content="summary_large_image">
-  <meta property="twitter:url" content="https://gen-ui.replit.app/">
-  <meta property="twitter:title" content="Self Generating UI">
-  <meta property="twitter:description" content="An AI-powered interface that generates and modifies its own user interface in real-time.">
-  <meta property="twitter:image" content="https://gen-ui.replit.app/social/twitter-card.png">
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="https://gen-ui.replit.app/" />
+  <meta property="twitter:title" content="Self Generating UI" />
+  <meta property="twitter:description"
+    content="An AI-powered interface that generates and modifies its own user interface in real-time." />
+  <meta property="twitter:image" content="https://gen-ui.replit.app/social/twitter-card.png" />
 
   <title>Self Generating UI</title>
-  <link rel="stylesheet" href="styles/style.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="../styles/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
 
 <body>
@@ -67,11 +69,13 @@ exports[`dom test 1`] = `
         <button id="attachment-button" class="attachment-button" aria-label="Attach image">
           <i class="fas fa-image"></i>
         </button>
-        <textarea id="message-input" placeholder="Ask me to change the theme, colors, or style..." rows="1" autocomplete="off"></textarea>
+        <textarea id="message-input" placeholder="Ask me to change the theme, colors, or style..." rows="1"
+          autocomplete="off"></textarea>
         <button id="send-button">
           <i class="fas fa-paper-plane"></i>
         </button>
-        <input type="file" id="image-input" accept="image/png, image/jpeg, image/jpg, image/webp, image/gif" style="display: none">
+        <input type="file" id="image-input" accept="image/png, image/jpeg, image/jpg, image/webp, image/gif"
+          style="display: none" />
       </div>
     </div>
   </div>
@@ -97,7 +101,7 @@ exports[`dom test 1`] = `
           Simply describe what you'd like to change, and watch as
           the interface transforms based on your requests!
         </p>
-        <hr class="modal-divider">
+        <hr class="modal-divider" />
         <div class="creator-info">
           <p>
             Created by
@@ -112,8 +116,7 @@ exports[`dom test 1`] = `
     </div>
   </div>
 
-  <script src="js/script2.js" type="module"></script>
+  <script src="../src/js/client.js" type="module"></script>
+</body>
 
-
-</body>"
-`;
+</html>

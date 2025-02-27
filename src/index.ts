@@ -1,4 +1,4 @@
-import root from "./index.html";
+import root from "../html/index.html";
 import { parseChatMessages } from "./chat.ts";
 import { preprocessPipeline } from "./preprocess.ts";
 import { fontPipeline } from "./fonts.ts";

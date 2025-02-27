@@ -1,4 +1,3 @@
-// client/src/js/script.js
 import { updateTheme } from './theme.js';
 
 document.addEventListener('DOMContentLoaded', () => {
