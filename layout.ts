@@ -75,6 +75,5 @@ export async function layoutPipeline(prompt: string): Promise<Result<{ [key: str
     },
   };
 
-  const result = await sendChatRequest(payload).then(parseChatResponse);
-  return result;
+  return await sendChatRequest(payload).then(parseChatResponse);
 }
