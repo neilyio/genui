@@ -58,7 +58,7 @@ export async function fetchToBase64(url: string): Promise<string> {
   return Bun.fetch(url)
     .then(r => r.arrayBuffer())
     .then(b => Buffer.from(b))
-    .then(b => downsample(b, 300).then(s => s.ok ? s.value : b))
+    .then(b => downsample(b, 300).then(s => s.value))
     .then(b => `data:image/jpeg;base64,${b.toString('base64')}`);
 }
 
@@ -109,7 +109,7 @@ async function fetchImageBuffer(url: string): Promise<Result<Buffer>> {
 
     const arrayBuf = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuf);
-    return ok(buffer);
+    return { ok: true, value: buffer };
   } catch (e: any) {
     return { ok: false, error: { type: "FetchError", detail: `Error fetching ${url}: ${String(e)}` } };
   }
@@ -124,7 +124,7 @@ async function stretchToSize(
     const resized = await sharp(buffer)
       .resize(width, height, { fit: "fill" })
       .toBuffer();
-    return ok(resized);
+    return { ok: true, value: resized };
   } catch (e: any) {
     return { ok: false, error: { type: "StretchingError", detail: `Stretch error: ${String(e)}` } };
   }
@@ -164,7 +164,7 @@ async function stitchHorizontally(
     }
 
     const stitched = await base.composite(compositeArray).png().toBuffer();
-    return ok(stitched);
+    return { ok: true, value: stitched };
   } catch (e: any) {
     return { ok: false, error: { type: "StitchingError", detail: `Stitching error: ${String(e)}` } };
   }
@@ -205,7 +205,7 @@ export async function stitchHorizontallyAlpha(
     }
 
     const stitched = base.composite(compositeArray).png();
-    return ok(stitched);
+    return { ok: true, value: stitched };
   } catch (e: any) {
     return err(`Stitching error: ${String(e)}`);
   }
@@ -275,8 +275,8 @@ export async function colorPipeline(contents: ChatMessageContent[]): Promise<Res
   const css = await sendPaletteRequest(urls);
   if (!css.ok) return { ok: false, error: { type: "PaletteError", detail: JSON.stringify(css.error) } };
 
-  return {
-    ok: true,
+  return { 
+    ok: true, 
     value: {
     imageUrls,
     base64Images,
