@@ -22,7 +22,7 @@ describe("sendChatRequest", () => {
   it("returns a MissingApiKey error when OPENAI_API_KEY is missing", async () => {
     delete process.env.OPENAI_API_KEY;
     const payload: ChatPayload = { model: "test-model", messages: [] };
-    const result: Result<unknown> = await sendChatRequest(payload);
+    const result: Result<unknown> = await sendChatRequest(payload as { [key: string]: Json });
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
@@ -61,7 +61,7 @@ describe("sendChatRequest", () => {
       },
     };
 
-    const result: Result<unknown> = await sendChatRequest(payload);
+    const result: Result<unknown> = await sendChatRequest(payload as { [key: string]: Json });
 
     expect(result.ok).toBe(false);
     if (!result.ok && result.error.type === "HttpError") {
@@ -105,7 +105,7 @@ describe("sendChatRequest", () => {
       },
     };
 
-    const result: ChatResult<unknown> = await sendChatRequest(payload);
+    const result: Result<unknown> = await sendChatRequest(payload as { [key: string]: Json });
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.value).toEqual(mockResponseData);

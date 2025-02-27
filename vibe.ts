@@ -52,6 +52,6 @@ const messages = [
 
 const payload = chatPayload({ name: "theme-words", messages });
 
-const response = await sendChatRequest(payload);
+const response = await sendChatRequest(payload as { [key: string]: Json });
 if (!response.ok) throw new Error(JSON.stringify(response.error));
 console.log(JSON.parse(response.value.choices[0].message.content).words);

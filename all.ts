@@ -29,7 +29,7 @@ function chatPayload(
         [key: string]: Json
       }
     }
-): { [key: string]: unknown } {
+): { [key: string]: Json } {
   let required = Object.keys(properties);
   return {
     model: MODEL,
@@ -94,6 +94,6 @@ export async function sendPaletteRequest(contents: ChatMessageContent[]):
     },
   })
 
-  return await sendChatRequest(payload).then(parseChatResponse)
+  return await sendChatRequest(payload as { [key: string]: Json }).then(parseChatResponse)
     .then((p: Result<{ ui_changes: Json }>) => p.ok ? { ok: true, value: { ui_changes: p.value["ui_changes"] } } : p);
 }

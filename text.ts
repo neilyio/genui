@@ -52,7 +52,7 @@ export async function textPipeline(theme: string): Promise<string> {
     },
   };
 
-  const result = await sendChatRequest(payload).then(parseChatResponse);
+  const result = await sendChatRequest(payload as { [key: string]: Json }).then(parseChatResponse);
   if (!result.ok) throw result.error;
 
   return result.value.response?.toString?.() ?? "";
