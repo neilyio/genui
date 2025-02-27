@@ -235,7 +235,7 @@ type ProcessChatMessageFlowResult = {
   imageUrls: string[];
 };
 
-export async function processChatMessageFlow(contents: ChatMessageContent[]): Promise<Result<ProcessChatMessageFlowResult>> {
+export async function colorPipeline(contents: ChatMessageContent[]): Promise<Result<ProcessChatMessageFlowResult>> {
   let imageUrls: string[] = [];
   let base64Images: string[] = [];
 

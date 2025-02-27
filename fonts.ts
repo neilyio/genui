@@ -53,7 +53,7 @@ async function fetchGoogleFontsMetadata() {
  * @param prompt - The theme prompt for which fonts are desired.
  * @returns {Promise<{ css: string, vars: { [key: string]: Json } }>} - A promise resolving to the CSS and font variables.
  */
-export async function executeFontFlow(prompt: string): Promise<{ css: string, ui_changes: { [key: string]: Json } }> {
+export async function fontPipeline(prompt: string): Promise<{ css: string, ui_changes: { [key: string]: Json } }> {
   const nameResult = await sendFontNameRequest(prompt);
   if (!nameResult.ok) throw nameResult.error;
 
@@ -331,14 +331,13 @@ export async function sendFontNameRequest(
 export async function sendFontVarsRequest(
   fontString: string
 ): Promise<ChatResult<{ [key: string]: Json }>> {
-  // Prepare your messages (system + user)
   const messages: ChatMessage[] = [
     {
       role: "system",
       content: [
         {
           type: "text",
-          text: "Determine appropriate font variables for the given font string.",
+          text: config.prompt.fontvars,
         },
       ],
     },
