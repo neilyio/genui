@@ -559,6 +559,8 @@ body {
     cursor: pointer;
     border: 1px solid var(--border-color);
     transition: all var(--animation-speed) var(--transition-effect);
+    white-space: nowrap; /* Prevent text wrapping */
+    width: auto; /* Allow pill to scale based on text */
 }
 
 .example-pill:hover {
