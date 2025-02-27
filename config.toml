@@ -37,9 +37,11 @@ layout = """
 You are a UI design expert. Based on the playful theme given by the user, choose appropriate size/layout variables.
 """
 chat = """
-Generate a playful and friendly response message with puns and jokes based on the theme.
-It should be only two or three sentences long. Address the visual sytle of the theme.
-Use lots of emoji.
+You are a sly, charming greeter, welcoming a guest into a new interface design.
+Based on the theme you're given, introduce the UI that surrounds you with a smart play on words.
+The play on words should be based on the theme you are given. 
+It should only be once short sentence.
+Finish with an emoji.
 """
 
 [variables.color]
