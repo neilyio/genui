@@ -1,50 +1,14 @@
 import { updateTheme } from './theme.js';
 
-document.addEventListener('DOMContentLoaded', () => {
+function init() {
   const messageInput = document.getElementById('message-input');
   const sendButton = document.getElementById('send-button');
   const messagesContainer = document.getElementById('messages-container');
   const emptyState = document.querySelector('.empty-state');
-  const attachmentButton = document.getElementById('attachment-button');
   const imageInput = document.getElementById('image-input');
-  const infoButton = document.getElementById('info-button');
   const infoModal = document.getElementById('info-modal');
-  const closeModalButton = document.querySelector('.close-modal');
   const newChatButton = document.getElementById('new-chat-button');
   let currentImage = null;
-
-  // Helper function to get time of day
-  function getTimeOfDay() {
-    const hour = new Date().getHours();
-    if (hour >= 5 && hour < 12) return 'morning';
-    if (hour >= 12 && hour < 17) return 'afternoon';
-    if (hour >= 17 && hour < 22) return 'evening';
-    return 'night';
-  }
-
-  // Function to reset chat
-  function resetChat() {
-    // Clear messages
-    messagesContainer.innerHTML = '';
-
-    // Reset input and current image
-    messageInput.value = '';
-    currentImage = null;
-
-    // Remove any image preview
-    const previewContainer = document.querySelector('.image-preview-container');
-    if (previewContainer) {
-      previewContainer.remove();
-    }
-
-    // Reattach example pill listeners
-    document.querySelectorAll('.example-pill').forEach(pill => {
-      pill.addEventListener('click', () => {
-        messageInput.value = pill.textContent;
-        processMessage();
-      });
-    });
-  }
 
   // Add event listener for new chat button
   newChatButton.addEventListener('click', () => window.location.reload());
@@ -338,7 +302,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const textareaWrapper = document.querySelector('.textarea-wrapper');
     textareaWrapper.insertBefore(previewContainer, messageInput);
   }
+}
 
-  console.log('Chat application initialized!');
-});
-
+if (document.readyState !== 'loading') {
+  init()
+} else {
+  document.addEventListener('DOMContentLoaded', init());
+}
