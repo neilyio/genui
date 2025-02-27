@@ -6,7 +6,7 @@ import type { Json } from "./utils.js";
  * Sends a request to the chat model to determine layout variables based on a theme prompt.
  * 
  * @param prompt - The theme prompt for which layout variables are desired.
- * @returns {Promise<Result<{ [key: string]: Json }>>} - A promise resolving to the layout variables.
+ * @returns {Promise<Result<{ ui_changes: { [key: string]: Json } }>>} - A promise resolving to the layout variables.
  */
 export async function layoutPipeline(prompt: string): Promise<Result<{ [key: string]: Json }>> {
   const messages: ChatMessage[] = [
@@ -75,5 +75,8 @@ export async function layoutPipeline(prompt: string): Promise<Result<{ [key: str
     },
   };
 
-  return await sendChatRequest(payload).then(parseChatResponse);
+  return await sendChatRequest(payload).then(response => {
+    if (!response.ok) return response;
+    return { ok: true, value: { ui_changes: response.value } };
+  });
 }

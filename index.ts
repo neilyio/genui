@@ -35,7 +35,7 @@ const server = Bun.serve({
           ui_changes: {
             ...imageResult.value.ui_changes,
             ...fontResult.ui_changes,
-            ...layoutResult,
+            ...layoutResult.value.ui_changes,
           },
           css: fontResult.css
         });
