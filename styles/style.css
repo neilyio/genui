@@ -543,8 +543,8 @@ body {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
-    width: 120%; /* Extend beyond container by 20% */
-    margin-left: -10%; /* Center the overflow */
+    width: 140%; /* Extend beyond container by 20% on each side */
+    margin-left: -20%; /* Center the overflow */
     padding: 0;
     overflow-x: visible; /* Allow overflow */
 }
