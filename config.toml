@@ -1,4 +1,4 @@
-model = "gpt-4o-2024-08-06"
+model = "gpt-4o-:2024-08-06"
 
 [prompt]
 keywords = """
@@ -47,6 +47,8 @@ primary_color = "--primary-color"
 secondary_color = "--secondary-color"
 background_color = "--background-color"
 text_color = "--text-color"
+text_primary = "--text-primary"
+text_secondary = "--text-secondary"
 page_bg = "--page-bg"
 border_color = "--border-color"
 input_background = "--input-background"
@@ -77,6 +79,7 @@ border_width = "--border-width"
 border_style = "--border-style"
 global_border_radius = "--global-border-radius"
 message_margin_bottom = "--message-margin-bottom"
+button_padding = "--button-padding"
 
 [variables.font]
 font_family = "--font-family"

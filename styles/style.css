@@ -12,12 +12,16 @@
     --page-bg: #f8f1e8; /* Handwritten journal paper */
     --info-button-color: #bfa58a;
 
+    --text-primary: #795548;
+    --text-secondary: #a1887f;
+
     /* Bubble appearance */
     --bubble-size: auto;
     --bubble-padding: 14px;
     --bubble-radius: 12px;
     --bubble-shadow: 2px 2px 6px rgba(0, 0, 0, 0.1);
     --bubble-max-width: 75%;
+    --button-padding: 8px;
 
     /* Typography with a hand-drawn feel */
     --font-family: "Patrick Hand", "Comic Sans MS", "Segoe Print", cursive, sans-serif;
@@ -513,44 +517,25 @@ body {
     align-items: center;
     justify-content: center;
     height: 100%;
+    width: 100%;
     padding: 20px;
     text-align: center;
-}
-
-.empty-state-avatar {
-    width: 80px;
-    height: 80px;
-    background-color: var(--assistant-message-background);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 24px;
-    font-size: 32px;
-    border-width: var(--border-width);
-    border-style: var(--border-style);
-    border-color: var(--border-color);
-}
-
-.empty-state-greeting {
-    font-size: 24px;
-    font-weight: 600;
-    color: var(--text-color);
-    margin-bottom: 16px;
+    overflow-x: hidden; /* Prevent horizontal scrollbar */
 }
 
 .empty-state-examples {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
-    width: 140%; /* Extend beyond container by 20% on each side */
+    width: 200%; /* Extend beyond container by 20% on each side */
     margin-left: -20%; /* Center the overflow */
     padding: 0;
     overflow-x: hidden; /* Prevent horizontal scrollbar */
+    transform: translateX(15%);
 }
 
 .example-pill {
-    opacity: 0.8;
+    opacity: 0.5;
     background-color: var(--assistant-message-background);
     color: var(--text-color);
     padding: 12px 20px;

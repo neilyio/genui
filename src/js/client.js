@@ -37,21 +37,6 @@ document.addEventListener('DOMContentLoaded', () => {
       previewContainer.remove();
     }
 
-    // Recreate empty state
-    const emptyStateHtml = `
-      <div class="empty-state">
-        <div class="empty-state-avatar">👨‍🎨</div>
-        <div class="empty-state-greeting">Good ${getTimeOfDay()}! 👋</div>
-        <div class="empty-state-examples">
-          <div class="example-pill">Make it look like a Mario theme 🍄</div>
-          <div class="example-pill">Change to dark mode 🌙</div>
-          <div class="example-pill">Make it calm and peaceful 🌿</div>
-          <div class="example-pill">Make it look like Windows 98 🖥️</div>
-        </div>
-      </div>
-    `;
-    messagesContainer.innerHTML = emptyStateHtml;
-
     // Reattach example pill listeners
     document.querySelectorAll('.example-pill').forEach(pill => {
       pill.addEventListener('click', () => {
@@ -62,26 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Add event listener for new chat button
-  newChatButton.addEventListener('click', resetChat);
-
-  // Modal functionality
-  function openModal() {
-    infoModal.classList.add('show');
-  }
-
-  function closeModal() {
-    infoModal.classList.remove('show');
-  }
-
-  infoButton.addEventListener('click', openModal);
-  closeModalButton.addEventListener('click', closeModal);
-
-  // Close modal when clicking outside
-  infoModal.addEventListener('click', (e) => {
-    if (e.target === infoModal) {
-      closeModal();
-    }
-  });
+  newChatButton.addEventListener('click', () => window.location.reload());
 
   // Close modal on escape key
   document.addEventListener('keydown', (e) => {
@@ -182,7 +148,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     messageInput.value = '';
     sendButton.disabled = true;      // Disable send button
-    attachmentButton.disabled = true; // Also disable attachment button
 
     // Remove empty state if it exists
     const currentEmptyState = document.querySelector('.empty-state');
@@ -267,7 +232,6 @@ document.addEventListener('DOMContentLoaded', () => {
       appendMessage('assistant', `Sorry, there was an error: ${error.message}`);
     } finally {
       sendButton.disabled = false;     // Re-enable send button
-      attachmentButton.disabled = false; // Re-enable attachment button
       messageInput.focus();
     }
   }
@@ -298,12 +262,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   messageInput.addEventListener('input', () => {
     messageInput.value = messageInput.value.replace(/\n/g, ' ');
-  });
-
-  attachmentButton.addEventListener('click', () => {
-    if (!attachmentButton.disabled) {
-      imageInput.click();
-    }
   });
 
   imageInput.addEventListener('change', async (e) => {

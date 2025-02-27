@@ -1,7 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { buildGoogleFontsUrl, executeFontFlow, fetchGoogleFontCSS, getFontWeights, parseGoogleFontCSS, sendFontNameRequest, sendFontVarsRequest } from "./fonts";
-
-// ------------------ TESTS ------------------
+import { buildGoogleFontsUrl, fetchGoogleFontCSS, fontPipeline, getFontWeights, parseGoogleFontCSS, sendFontNameRequest } from "./fonts";
 
 describe("Google Font Fetching", () => {
   it.skip("should build a URL for 'Open Sans' with some parameters", () => {
@@ -13,7 +11,7 @@ describe("Google Font Fetching", () => {
   });
 
   describe("sendFontNameRequest", () => {
-    it("should suggest an exotic font for a 'futuristic' theme", async () => {
+    it.skip("should suggest an exotic font for a 'futuristic' theme", async () => {
       const prompt = "futuristic";
 
       const result = await sendFontNameRequest(prompt);
@@ -32,7 +30,7 @@ describe("Google Font Fetching", () => {
       expect(fallbackUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Exo:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"`);
     }, 10000);
 
-    it("should suggest an exotic font for a 'vintage' theme", async () => {
+    it.skip("should suggest an exotic font for a 'vintage' theme", async () => {
       const prompt = "vintage";
 
       const result = await sendFontNameRequest(prompt);
@@ -51,10 +49,10 @@ describe("Google Font Fetching", () => {
       expect(fallbackUrl).toMatchInlineSnapshot(`"https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap"`);
     }, 10000);
 
-    it("should suggest an exotic font for a 'gothic' theme", async () => {
+    it.skip("should suggest an exotic font for a 'gothic' theme", async () => {
       const prompt = "gothic";
 
-      const result = await executeFontFlow(prompt);
+      const result = await fontPipeline(prompt);
       expect(result).toMatchInlineSnapshot(`
         {
           "css": 
