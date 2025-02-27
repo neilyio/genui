@@ -546,7 +546,7 @@ body {
     width: 140%; /* Extend beyond container by 20% on each side */
     margin-left: -20%; /* Center the overflow */
     padding: 0;
-    overflow-x: visible; /* Allow overflow */
+    overflow-x: hidden; /* Prevent horizontal scrollbar */
 }
 
 .example-pill {
