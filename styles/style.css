@@ -50,10 +50,7 @@
     --attachment-button-bg: var(--input-background);
     --attachment-button-color: var(--text-color);
     --info-button-color: var(--header-text-color);
-}
 
-/* You also had these from your existing code: */
-:root {
     --page-bg: #f9fafb;
     --text-primary: var(--text-color);
     --text-secondary: #6b7280;
