@@ -4,7 +4,7 @@ import { preprocessPipeline } from "./preprocess.ts";
 import { fontPipeline } from "./fonts.ts";
 import { layoutPipeline } from "./layout.ts";
 import { textPipeline } from "./text.ts";
-import { colorPipeline } from "./images.ts";
+import { colorPipeline } from "./images";
 
 const server = Bun.serve({
   routes: {
