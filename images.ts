@@ -229,12 +229,12 @@ export async function colorPipeline(contents: ChatMessageContent[]): Promise<Res
     } else if (content.type === "image_url") {
       if (typeof content.image_url === "string") {
         if (!content.image_url.startsWith("data:image/")) {
-          return err("Expected base64 image URL");
+          return { ok: false, error: { type: "InvalidImageUrl", detail: "Expected base64 image URL" } };
         }
         base64Images.push(content.image_url);
       } else {
         if (!content.image_url.url.startsWith("data:image/")) {
-          return err("Expected base64 image URL");
+          return { ok: false, error: { type: "InvalidImageUrl", detail: "Expected base64 image URL" } };
         }
         base64Images.push(content.image_url.url);
       }
