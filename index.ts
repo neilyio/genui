@@ -12,7 +12,12 @@ const server = Bun.serve({
     "/api/chat": {
       POST: async req => {
         const messages = parseChatMessages(await req.json(), ["messages"]);
-        if (!messages.ok) throw new Error(JSON.stringify(messages.error));
+        if (!messages.ok) {
+          return Response.json({
+            type: "error",
+            content: `Oops! Something went wrong: ${JSON.stringify(messages.error)}. If only LLMs could code, they'd fix it for us!`,
+          });
+        }
 
         const latest = messages.value[messages.value.length - 1];
         const latestContent = latest.content.map(c => c.type === "text" ? c.text : "").join(" ");
@@ -24,9 +29,24 @@ const server = Bun.serve({
           textPipeline(latestContent)
         ]);
 
-        if (!imageResult.ok) throw new Error(`Image processing failed: ${imageResult.error}`);
-        if (!fontResult) throw new Error(`Font processing failed`);
-        if (!layoutResult) throw new Error(`Layout processing failed`);
+        if (!imageResult.ok) {
+          return Response.json({
+            type: "error",
+            content: `Oops! Image processing failed: ${imageResult.error}. If only LLMs could code, they'd fix it for us!`,
+          });
+        }
+        if (!fontResult) {
+          return Response.json({
+            type: "error",
+            content: `Oops! Font processing failed. If only LLMs could code, they'd fix it for us!`,
+          });
+        }
+        if (!layoutResult) {
+          return Response.json({
+            type: "error",
+            content: `Oops! Layout processing failed. If only LLMs could code, they'd fix it for us!`,
+          });
+        }
 
         // Ensure the response structure is correct
         return Response.json({
