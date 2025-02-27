@@ -1,25 +1,4 @@
-// Define a JSON type.
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | Json[]
-  | { [key: string]: Json };
-
-// Enumerated error types for chat requests.
-export type ChatError =
-  | { type: "MissingApiKey" }
-  | { type: "HttpError"; status: number; statusText: string; detail: Json }
-  | { type: "FetchError"; detail: string }
-  | { type: "NoResponseContent" }
-  | { type: "InvalidResponseJson" }
-  | { type: "InvalidChatMessages"; detail: string };
-
-// A Result type that represents either a successful value or a ChatError.
-export type ChatResult<T> =
-  | { ok: true; value: T }
-  | { ok: false; error: ChatError };
+import { Result, Json } from "./result.ts";
 
 export type ChatMessageContent =
   | { type: "text", text: string }

@@ -6,14 +6,8 @@
 import { JSDOM } from 'jsdom';
 import sharp from 'sharp';
 import { sendPaletteRequest } from "./all";
+import { Result } from "./result.ts";
 import type { ChatMessageContent } from "./chat";
-
-export type ImageError =
-  | { type: string; }
-
-export type ImageResult<T> =
-  | { ok: true; value: T }
-  | { ok: false, error: ImageError };
 
 export async function scrapeBingImages(searchTerm: string, numResults = 10): Promise<string[]> {
   try {

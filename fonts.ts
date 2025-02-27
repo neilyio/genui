@@ -1,7 +1,7 @@
 import {
   sendChatRequest,
   parseChatResponse,
-  type ChatResult,
+  type Result,
   type ChatMessage,
   type Json,
 } from "./chat.js";
