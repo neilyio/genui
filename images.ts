@@ -116,21 +116,6 @@ async function fetchImageBuffer(url: string): Promise<Result<Buffer>> {
   }
 }
 
-async function stretchToSize(
-  buffer: Buffer,
-  width: number,
-  height: number
-): Promise<Result<Buffer>> {
-  try {
-    const resized = await sharp(buffer)
-      .resize(width, height, { fit: "fill" })
-      .toBuffer();
-    return ok(resized);
-  } catch (e: any) {
-    return err({ type: "StretchingError", detail: `Stretch error: ${String(e)}` });
-  }
-}
-
 async function stitchHorizontally(
   buffers: Buffer[],
   eachWidth: number,
