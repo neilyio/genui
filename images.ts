@@ -58,7 +58,7 @@ export async function fetchToBase64(url: string): Promise<string> {
   return Bun.fetch(url)
     .then(r => r.arrayBuffer())
     .then(b => Buffer.from(b))
-    .then(b => downsample(b, 300).then(s => s.value))
+    .then(b => downsample(b, 300).then(s => s.ok ? s.value : b))
     .then(b => `data:image/jpeg;base64,${b.toString('base64')}`);
 }
 
@@ -99,19 +99,26 @@ export async function downsample(
   }
 }
 
+function ok<T>(value: T): ResultOk<T> {
+  return { ok: true, value };
+}
+
+function err(message: string): ResultErr {
+  return { ok: false, error: message };
+}
 
 async function fetchImageBuffer(url: string): Promise<Result<Buffer>> {
   try {
     const response = await Bun.fetch(url);
     if (!response.ok) {
-      return { ok: false, error: { type: "FetchError", detail: `Fetch failed for ${url}, status: ${response.status}` } };
+      return err(`Fetch failed for ${url}, status: ${response.status}`);
     }
 
     const arrayBuf = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuf);
-    return { ok: true, value: buffer };
+    return ok(buffer);
   } catch (e: any) {
-    return { ok: false, error: { type: "FetchError", detail: `Error fetching ${url}: ${String(e)}` } };
+    return err(`Error fetching ${url}: ${String(e)}`);
   }
 }
 
@@ -124,9 +131,9 @@ async function stretchToSize(
     const resized = await sharp(buffer)
       .resize(width, height, { fit: "fill" })
       .toBuffer();
-    return { ok: true, value: resized };
+    return ok(resized);
   } catch (e: any) {
-    return { ok: false, error: { type: "StretchingError", detail: `Stretch error: ${String(e)}` } };
+    return err(`Stretch error: ${String(e)}`);
   }
 }
 
@@ -136,7 +143,7 @@ async function stitchHorizontally(
   eachHeight: number
 ): Promise<Result<Buffer>> {
   if (buffers.length === 0) {
-    return { ok: false, error: { type: "StitchingError", detail: "No buffers to stitch." } };
+    return err("No buffers to stitch.");
   }
 
   try {
@@ -164,9 +171,9 @@ async function stitchHorizontally(
     }
 
     const stitched = await base.composite(compositeArray).png().toBuffer();
-    return { ok: true, value: stitched };
+    return ok(stitched);
   } catch (e: any) {
-    return { ok: false, error: { type: "StitchingError", detail: `Stitching error: ${String(e)}` } };
+    return err(`Stitching error: ${String(e)}`);
   }
 }
 
@@ -174,7 +181,7 @@ export async function stitchHorizontallyAlpha(
   buffers: Buffer[]
 ): Promise<Result<sharp.Sharp>> {
   if (buffers.length === 0) {
-    return { ok: false, error: { type: "StitchingError", detail: "No buffers to stitch." } };
+    return err("No buffers to stitch.");
   }
 
   try {
@@ -205,9 +212,9 @@ export async function stitchHorizontallyAlpha(
     }
 
     const stitched = base.composite(compositeArray).png();
-    return { ok: true, value: stitched };
+    return ok(stitched);
   } catch (e: any) {
-    return { ok: false, error: { type: "StitchingError", detail: `Stitching error: ${String(e)}` } };
+    return err(`Stitching error: ${String(e)}`);
   }
 }
 
@@ -229,12 +236,12 @@ export async function colorPipeline(contents: ChatMessageContent[]): Promise<Res
     } else if (content.type === "image_url") {
       if (typeof content.image_url === "string") {
         if (!content.image_url.startsWith("data:image/")) {
-          return { ok: false, error: { type: "InvalidImageUrl", detail: "Expected base64 image URL" } };
+          return err("Expected base64 image URL");
         }
         base64Images.push(content.image_url);
       } else {
         if (!content.image_url.url.startsWith("data:image/")) {
-          return { ok: false, error: { type: "InvalidImageUrl", detail: "Expected base64 image URL" } };
+          return err("Expected base64 image URL");
         }
         base64Images.push(content.image_url.url);
       }
@@ -258,7 +265,7 @@ export async function colorPipeline(contents: ChatMessageContent[]): Promise<Res
     );
 
   const stitchedResult = await stitchHorizontallyAlpha(buffers);
-  if (!stitchedResult.ok) return { ok: false, error: stitchedResult.error };
+  if (!stitchedResult.ok) return err(stitchedResult.error);
 
   const stitchedBuffer = await stitchedResult.value.toBuffer();
   const base64Image = `data:image/png;base64,${stitchedBuffer.toString("base64")}`;
@@ -269,15 +276,12 @@ export async function colorPipeline(contents: ChatMessageContent[]): Promise<Res
 
   urls.push({
     type: "image_url", image_url: { url: base64Image, detail: "low" }
-    }
-  };
+  });
 
   const css = await sendPaletteRequest(urls);
-  if (!css.ok) return { ok: false, error: { type: "PaletteError", detail: JSON.stringify(css.error) } };
+  if (!css.ok) return err(JSON.stringify(css.error));
 
-  return { 
-    ok: true, 
-    value: {
+  return ok({
     imageUrls,
     base64Images,
     stitchedImage: base64Image,
