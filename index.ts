@@ -4,6 +4,7 @@ import { sendPaletteRequest } from "./all.ts";
 import { parseChatMessages } from "./chat.ts";
 import testcolors from "./testcolors.json";
 import { fetchToBase64, colorPipeline, scrapeBingImages } from "./images.ts";
+import { preprocessPipeline } from "./preprocess.ts";
 import { fontPipeline } from "./fonts.ts";
 import { layoutPipeline } from "./layout.ts";
 import { textPipeline } from "./text.ts";
@@ -18,8 +19,9 @@ const server = Bun.serve({
 
         const latest = messages.value[messages.value.length - 1];
 
+        const preprocessedMessage = await preprocessPipeline(latest);
         const [imageResult, fontResult, layoutResult, textResult] = await Promise.all([
-          colorPipeline(latest.content),
+          colorPipeline(preprocessedMessage.content),
           fontPipeline(latest.content.map(c => c.type === "text" ? c.text : "").join(" ")),
           layoutPipeline(latest.content.map(c => c.type === "text" ? c.text : "").join(" ")),
           textPipeline(latest.content.map(c => c.type === "text" ? c.text : "").join(" "))
