@@ -362,7 +362,7 @@ body {
 
 @keyframes typing-bounce {
     0%, 40%, 80%, 100% { transform: translateY(0); }
-    40% { transform: translateY(-6px); }
+    20%, 60% { transform: translateY(-6px); }
 }
 
 /* user messages vs assistant messages */
