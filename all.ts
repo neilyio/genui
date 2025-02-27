@@ -24,7 +24,7 @@ function chatPayload(
   { name, messages, properties }:
     {
       name: string,
-      messages: ChatMessage[],
+      messages: ChatMessage[] as unknown as Json,
       properties: {
         [key: string]: Json
       }
