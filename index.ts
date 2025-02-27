@@ -15,23 +15,18 @@ const server = Bun.serve({
         if (!messages.ok) throw new Error(JSON.stringify(messages.error));
 
         const latest = messages.value[messages.value.length - 1];
-
-        const latestTextContent = latest.content.map(c => c.type === "text" ? c.text : "").join(" ");
-        const processedLatest = await preprocessPipeline(latest);
+        const latestContent = latest.content.map(c => c.type === "text" ? c.text : "").join(" ");
+        const keywordContent = (await preprocessPipeline(latest)).content;
         const [imageResult, fontResult, layoutResult, textResult] = await Promise.all([
-          colorPipeline(processedLatest.content),
-          fontPipeline(latestTextContent),
-          layoutPipeline(latestTextContent),
-          textPipeline(latestTextContent)
+          colorPipeline(keywordContent),
+          fontPipeline(latestContent),
+          layoutPipeline(latestContent),
+          textPipeline(latestContent)
         ]);
 
         if (!imageResult.ok) throw new Error(`Image processing failed: ${imageResult.error}`);
         if (!fontResult) throw new Error(`Font processing failed`);
         if (!layoutResult) throw new Error(`Layout processing failed`);
-
-        console.log(layoutResult, textResult);
-
-        const css = fontResult.css;
 
         // Ensure the response structure is correct
         return Response.json({
@@ -42,7 +37,7 @@ const server = Bun.serve({
             ...fontResult.ui_changes,
             ...layoutResult,
           },
-          css
+          css: fontResult.css
         });
       }
     }
