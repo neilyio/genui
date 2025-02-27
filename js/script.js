@@ -176,6 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
     styleElement.type = 'text/css';
     styleElement.appendChild(document.createTextNode(css));
     document.head.appendChild(styleElement);
+    console.log("el", styleElement);
   }
   async function processMessage() {
     const userMessage = messageInput.value.trim();
@@ -253,6 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else if (data.type === "ui_update") {
         await hideTypingIndicator(); // Hide before theme update
         if (data.css) {
+          console.log("inserting", data.css);
           insertFontCSS(data.css);
         }
         updateTheme(data.ui_changes);
