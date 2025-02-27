@@ -100,63 +100,7 @@ export async function downsample(
   }
 }
 
-
-async function fetchImageBuffer(url: string): Promise<Result<Buffer>> {
-  try {
-    const response = await Bun.fetch(url);
-    if (!response.ok) {
-      return err({ type: "FetchError", detail: `Fetch failed for ${url}, status: ${response.status}` });
-    }
-
-    const arrayBuf = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuf);
-    return ok(buffer);
-  } catch (e: any) {
-    return err({ type: "FetchError", detail: `Error fetching ${url}: ${String(e)}` });
-  }
-}
-
-async function stitchHorizontally(
-  buffers: Buffer[],
-  eachWidth: number,
-  eachHeight: number
-): Promise<Result<Buffer>> {
-  if (buffers.length === 0) {
-    return err({ type: "StitchingError", detail: "No buffers to stitch." });
-  }
-
-  try {
-    const totalWidth = eachWidth * buffers.length;
-
-    let base = sharp({
-      create: {
-        width: totalWidth,
-        height: eachHeight,
-        channels: 4,
-        background: { r: 255, g: 255, b: 255, alpha: 1 },
-      },
-    });
-
-    const compositeArray = [];
-    let currentLeft = 0;
-
-    for (const buf of buffers) {
-      compositeArray.push({
-        input: buf,
-        left: currentLeft,
-        top: 0,
-      });
-      currentLeft += eachWidth;
-    }
-
-    const stitched = await base.composite(compositeArray).png().toBuffer();
-    return ok(stitched);
-  } catch (e: any) {
-    return err({ type: "StitchingError", detail: `Stitching error: ${String(e)}` });
-  }
-}
-
-export async function stitchHorizontallyAlpha(
+export async function stitchHorizontally(
   buffers: Buffer[]
 ): Promise<Result<sharp.Sharp>> {
   if (buffers.length === 0) {
@@ -243,7 +187,7 @@ export async function colorPipeline(contents: ChatMessageContent[]): Promise<Res
         .map((r) => r.value)
     );
 
-  const stitchedResult = await stitchHorizontallyAlpha(buffers);
+  const stitchedResult = await stitchHorizontally(buffers);
   if (!stitchedResult.ok) return err(stitchedResult.error);
 
   const stitchedBuffer = await stitchedResult.value.toBuffer();

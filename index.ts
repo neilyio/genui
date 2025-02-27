@@ -29,7 +29,7 @@ const server = Bun.serve({
         if (!layoutResult.ok) throw new Error(`Layout processing failed: ${layoutResult.error}`);
 
         // Ensure the response structure is correct
-        return new Response(JSON.stringify({
+        return Response.json({
           type: "ui_update",
           content: textResult,
           ui_changes: {
@@ -45,3 +45,4 @@ const server = Bun.serve({
 });
 
 console.log(`Server started at port: ${server.port}`);
+
