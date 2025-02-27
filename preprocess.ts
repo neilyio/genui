@@ -15,7 +15,7 @@ export async function preprocessPipeline(messages: ChatMessage[]): Promise<ChatM
 
       return {
         ...message,
-        content: [{ type: "text", text: keywordsResult.value.keywords }]
+        content: [{ type: "text", text: keywordsResult.value.keywords as string }]
       };
     }
     return message;
