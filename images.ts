@@ -207,7 +207,7 @@ export async function stitchHorizontallyAlpha(
     const stitched = base.composite(compositeArray).png();
     return { ok: true, value: stitched };
   } catch (e: any) {
-    return err(`Stitching error: ${String(e)}`);
+    return { ok: false, error: { type: "StitchingError", detail: `Stitching error: ${String(e)}` } };
   }
 }
 
