@@ -540,13 +540,12 @@ body {
 }
 
 .empty-state-examples {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: 12px;
-    width: 140%; /* Extend beyond container by 20% on each side */
-    margin-left: -20%; /* Center the grid */
+    width: 100%;
     padding: 0;
-    overflow-x: hidden; /* Prevent horizontal scrollbar */
+    overflow-x: visible; /* Allow overflow */
 }
 
 .example-pill {
