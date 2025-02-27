@@ -8,14 +8,14 @@ import config from "./config.toml";
  * @returns {Promise<ChatMessage[]>} - A promise resolving to a new array of ChatMessage objects with text replaced by keywords.
  */
 export async function preprocessPipeline(messages: ChatMessage[]): Promise<ChatMessage[]> {
-  const processedMessages = await Promise.all(messages.map(async (message) => {
+  const processedMessages: ChatMessage[] = await Promise.all(messages.map(async (message) => {
     if (message.role === "user") {
       const keywordsResult = await extractKeywords(message.content.map(c => c.type === "text" ? c.text : "").join(" "));
       if (!keywordsResult.ok) throw keywordsResult.error;
 
       return {
         ...message,
-        content: [{ type: "text", text: keywordsResult.value.keywords as string }]
+        content: [{ type: "text", text: keywordsResult.value.keywords?.toString?.() ?? "" }]
       };
     }
     return message;
