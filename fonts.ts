@@ -50,9 +50,9 @@ async function fetchGoogleFontsMetadata() {
  * Executes the full flow for fetching font CSS and variables based on a theme prompt.
  * 
  * @param prompt - The theme prompt for which fonts are desired.
- * @returns {Promise<{ css: string, vars: { [key: string]: Json } }>} - A promise resolving to the CSS and font variables.
+ * @returns {Promise<Result<{ css: string, ui_changes: { [key: string]: Json } }>>} - A promise resolving to the CSS and font variables.
  */
-export async function fontPipeline(prompt: string): Promise<{ css: string, ui_changes: { [key: string]: Json } }> {
+export async function fontPipeline(prompt: string): Promise<Result<{ css: string, ui_changes: { [key: string]: Json } }>> {
   const nameResult = await sendFontNameRequest(prompt);
   if (!nameResult.ok) return nameResult;
 
