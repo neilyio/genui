@@ -54,20 +54,20 @@ async function fetchGoogleFontsMetadata() {
  */
 export async function fontPipeline(prompt: string): Promise<{ css: string, ui_changes: { [key: string]: Json } }> {
   const nameResult = await sendFontNameRequest(prompt);
-  if (!nameResult.ok) throw nameResult.error;
+  if (!nameResult.ok) return nameResult;
 
   const primaryUrl = await buildGoogleFontsUrl(nameResult.value.primary_font_name?.toString?.() ?? "");
   const fallbackUrl = await buildGoogleFontsUrl(nameResult.value.fallback_font_name?.toString?.() ?? "");
 
   const cssResult = await fetchGoogleFontCSS(primaryUrl, fallbackUrl);
-  if (!cssResult.ok) throw cssResult.error;
+  if (!cssResult.ok) return cssResult;
 
   const fontString = parseGoogleFontCSS(cssResult.value);
 
   const varsResult = await sendFontVarsRequest(fontString);
-  if (!varsResult.ok) throw varsResult.error;
+  if (!varsResult.ok) return varsResult;
 
-  return { css: cssResult.value, ui_changes: { ...varsResult.value } };
+  return { ok: true, value: { css: cssResult.value, ui_changes: { ...varsResult.value } } };
 }
 
 /**
