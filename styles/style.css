@@ -449,6 +449,7 @@ body {
     background-color: var(--input-background);
     color: var(--input-text);
     resize: none;
+    font-size: 16px;
     min-height: 94px;
     max-height: 200px;
     outline: none;
