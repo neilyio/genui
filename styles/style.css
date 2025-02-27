@@ -540,12 +540,12 @@ body {
 }
 
 .empty-state-examples {
-    display: flex;
-    flex-wrap: wrap;
-    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 12px;
-    justify-content: center;
-    padding: 0 20px;
+    width: calc(100% + 40px); /* Extend beyond container */
+    margin-left: -20px; /* Center the grid */
+    padding: 0;
 }
 
 .example-pill {
