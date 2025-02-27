@@ -1,8 +1,8 @@
 /* client/src/styles/style.css */
 :root {
     /* All properties from UIChanges: default values */
-    --primary-color: #166534;
-    --secondary-color: #14532d;
+    --primary-color: #41403e;
+    --secondary-color: #0b74d5;
     --background-color: #ffffff;
     --text-color: #333333;
     --page-bg: #f9fafb;
@@ -32,11 +32,11 @@
     --input-background: #ffffff;
     --chat-background: #ffffff;
     --header-background: #ffffff;
-    --header-text-color: #166534;
+    --header-text-color: #41403e;
 
     /* Message specific properties */
     --user-message-background: #dcfce7;
-    --user-message-text-color: #166534;
+    --user-message-text-color: #41403e;
     --assistant-message-text-color: #333333;
     --message-margin-bottom: 20px;
 
@@ -569,7 +569,6 @@ body {
     border-color: var(--primary-color);
 }
 
-/* Responsive adjustments */
 @media (max-width: 600px) {
     #chat-container {
         width: 100%;
@@ -627,4 +626,3 @@ body {
     border-radius: calc(var(--bubble-radius) - 4px);
     margin-top: 8px;
 }
-
