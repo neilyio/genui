@@ -31,6 +31,7 @@ The font must be an existing font available on Google Fonts. Play it safe and pi
 """
 fontvars = """
 You are a font and typography expert. Determine appropriate font variables for the given font string.
+There should only be one font name per variable, do not use comma-separated fallbacks.
 """
 layout = """
 You are a UI design expert. Based on the playful theme given by the user, choose appropriate size/layout variables.
