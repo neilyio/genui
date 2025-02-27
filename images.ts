@@ -105,14 +105,14 @@ async function fetchImageBuffer(url: string): Promise<Result<Buffer>> {
   try {
     const response = await Bun.fetch(url);
     if (!response.ok) {
-      return err(`Fetch failed for ${url}, status: ${response.status}`);
+      return err({ type: "FetchError", detail: `Fetch failed for ${url}, status: ${response.status}` });
     }
 
     const arrayBuf = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuf);
     return ok(buffer);
   } catch (e: any) {
-    return err(`Error fetching ${url}: ${String(e)}`);
+    return err({ type: "FetchError", detail: `Error fetching ${url}: ${String(e)}` });
   }
 }
 
@@ -127,7 +127,7 @@ async function stretchToSize(
       .toBuffer();
     return ok(resized);
   } catch (e: any) {
-    return err(`Stretch error: ${String(e)}`);
+    return err({ type: "StretchingError", detail: `Stretch error: ${String(e)}` });
   }
 }
 
@@ -137,7 +137,7 @@ async function stitchHorizontally(
   eachHeight: number
 ): Promise<Result<Buffer>> {
   if (buffers.length === 0) {
-    return err("No buffers to stitch.");
+    return err({ type: "StitchingError", detail: "No buffers to stitch." });
   }
 
   try {
@@ -167,7 +167,7 @@ async function stitchHorizontally(
     const stitched = await base.composite(compositeArray).png().toBuffer();
     return ok(stitched);
   } catch (e: any) {
-    return err(`Stitching error: ${String(e)}`);
+    return err({ type: "StitchingError", detail: `Stitching error: ${String(e)}` });
   }
 }
 
@@ -175,7 +175,7 @@ export async function stitchHorizontallyAlpha(
   buffers: Buffer[]
 ): Promise<Result<sharp.Sharp>> {
   if (buffers.length === 0) {
-    return err("No buffers to stitch.");
+    return err({ type: "StitchingError", detail: "No buffers to stitch." });
   }
 
   try {
@@ -230,12 +230,12 @@ export async function colorPipeline(contents: ChatMessageContent[]): Promise<Res
     } else if (content.type === "image_url") {
       if (typeof content.image_url === "string") {
         if (!content.image_url.startsWith("data:image/")) {
-          return err("Expected base64 image URL");
+          return err({ type: "InvalidImageUrl", detail: "Expected base64 image URL" });
         }
         base64Images.push(content.image_url);
       } else {
         if (!content.image_url.url.startsWith("data:image/")) {
-          return err("Expected base64 image URL");
+          return err({ type: "InvalidImageUrl", detail: "Expected base64 image URL" });
         }
         base64Images.push(content.image_url.url);
       }
