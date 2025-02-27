@@ -6,6 +6,7 @@ import testcolors from "./testcolors.json";
 import { fetchToBase64, colorPipeline, scrapeBingImages } from "./images.ts";
 import { fontPipeline } from "./fonts.ts";
 import { layoutPipeline } from "./layout.ts";
+import { textPipeline } from "./text.ts";
 
 const server = Bun.serve({
   routes: {
@@ -17,24 +18,25 @@ const server = Bun.serve({
 
         const latest = messages.value[messages.value.length - 1];
 
-        const [imageResult, fontResult, layoutResult] = await Promise.all([
+        const [imageResult, fontResult, layoutResult, textResult] = await Promise.all([
           colorPipeline(latest.content),
           fontPipeline(latest.content.map(c => c.type === "text" ? c.text : "").join(" ")),
-          layoutPipeline(latest.content.map(c => c.type === "text" ? c.text : "").join(" "))
+          layoutPipeline(latest.content.map(c => c.type === "text" ? c.text : "").join(" ")),
+          textPipeline(latest.content.map(c => c.type === "text" ? c.text : "").join(" "))
         ]);
 
         if (!imageResult.ok) throw new Error(`Image processing failed: ${imageResult.error}`);
         if (!fontResult) throw new Error(`Font processing failed`);
         if (!layoutResult) throw new Error(`Layout processing failed`);
 
-        console.log(layoutResult);
+        console.log(layoutResult, textResult);
 
         const css = fontResult.css;
 
         // Ensure the response structure is correct
         return Response.json({
           type: "ui_update",
-          content: "DONE!",
+          content: textResult,
           ui_changes: {
             ...imageResult.value.ui_changes,
             ...fontResult.ui_changes,
